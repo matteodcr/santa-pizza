@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { Group } from '../group/group.entity';
 import { Pizza } from '../pizza/pizza.entity';
 import { PublicUserDto } from './dto/public-user.dto';
+import { Membership } from '../membership/membership.entity';
 
 @Entity()
 @Unique(['username'])
@@ -31,9 +32,12 @@ export class User extends BaseEntity {
   @Column('jsonb', { nullable: true })
   allergies: string[];
 
-  @ManyToMany(() => Group, (group) => group.users, { eager: true })
+  @ManyToMany(() => Group, (group) => group.memberships, { eager: true })
   @JoinTable()
   groups: Group[];
+
+  @OneToMany(() => Membership, (membership) => membership.user)
+  memberships: Membership[];
 
   @OneToMany(() => Pizza, (pizza) => pizza.santa)
   sentPizzas: Pizza[];

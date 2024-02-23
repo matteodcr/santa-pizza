@@ -1,6 +1,8 @@
 import { PublicUserDto } from '../../auth/dto/public-user.dto';
 import { Group } from '../group.entity';
 import { User } from '../../auth/user.entity';
+import { Membership } from '../../membership/membership.entity';
+import { PublicMembershipDto } from '../../membership/dto/public-membership.dto';
 
 export class PublicGroupDto {
   id: number;
@@ -9,12 +11,20 @@ export class PublicGroupDto {
 
   description: string;
 
-  users: PublicUserDto[];
+  memberhips: PublicMembershipDto[];
+
+  dueDate: Date;
+
+  createdAt: Date;
 
   constructor(group: Group) {
     this.id = group.id;
     this.name = group.name;
     this.description = group.description;
-    this.users = group.users.map((user: User) => new PublicUserDto(user));
+    this.memberhips = group.memberships.map(
+      (membership: Membership) => new PublicMembershipDto(membership),
+    );
+    this.dueDate = group.dueDate;
+    this.createdAt = group.createdAt;
   }
 }

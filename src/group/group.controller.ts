@@ -15,14 +15,20 @@ import {
 import { GroupService } from './group.service';
 import { GetUser } from '../auth/get-user-decorator';
 import { User } from '../auth/user.entity';
-import { Group } from './group.entity';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetGroupFilterDto } from './dto/get-group-filter.dto';
 import { PublicGroupDto } from './dto/public-group.dto';
+import {
+  UpdateGroupDateDto,
+  UpdateGroupDescriptionDto,
+  UpdateGroupNameDto,
+} from './dto/update-group.dto';
+import { JoinRemoveGroupDto } from '../membership/dto/join-remove-group.dto';
 
 @Controller('group')
 @UseGuards(AuthGuard())
+@UsePipes(ValidationPipe)
 export class GroupController {
   constructor(private groupService: GroupService) {}
 
@@ -40,12 +46,10 @@ export class GroupController {
   }
 
   @Post()
-  @UsePipes(ValidationPipe)
   createGroup(
     @Body() createGroupDto: CreateGroupDto,
     @GetUser() user: User,
   ): Promise<PublicGroupDto> {
-    console.log('ok');
     return this.groupService.createGroup(createGroupDto, user);
   }
 
@@ -54,16 +58,36 @@ export class GroupController {
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
   ): Promise<void> {
-    console.log(id);
     return this.groupService.deleteGroup(id, user);
   }
 
-  // @Patch('/:id/status')
-  // updateGroupName(
-  //   @Param('id') id: number,
-  //   @Body('name') name: string,
-  //   @GetUser() user: User,
-  // ): Promise<Group> {
-  //   return this.groupService.updateGroupName(id, user);
-  // }
+  @Patch('/:id/name')
+  updateGroupName(
+    @Param('id') id: number,
+    @GetUser() user: User,
+    @Body() updateGroupNameDto: UpdateGroupNameDto,
+  ): Promise<PublicGroupDto> {
+    return this.groupService.updateGroupName(id, user, updateGroupNameDto);
+  }
+  @Patch('/:id/description')
+  updateGroupDescription(
+    @Param('id') id: number,
+    @GetUser() user: User,
+    @Body() updateGroupDescriptionDto: UpdateGroupDescriptionDto,
+  ): Promise<PublicGroupDto> {
+    return this.groupService.updateGroupDescription(
+      id,
+      user,
+      updateGroupDescriptionDto,
+    );
+  }
+
+  @Patch('/:id/date')
+  updateGroupDate(
+    @Param('id') id: number,
+    @GetUser() user: User,
+    @Body() updateGroupDateDto: UpdateGroupDateDto,
+  ): Promise<PublicGroupDto> {
+    return this.groupService.updateGroupDate(id, user, updateGroupDateDto);
+  }
 }
