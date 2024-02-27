@@ -14,18 +14,15 @@ export class Pizza extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Group, (group) => group.pizzas, { eager: false })
-  group: string;
+  @ManyToOne(() => Group, (group) => group.pizzas)
+  group: Group;
 
-  @ManyToOne(() => User, (user) => user.sentPizzas, { eager: false })
-  santa: string;
+  @ManyToOne(() => User, (user) => user.sentPizzas)
+  santa: User;
 
-  @ManyToOne(() => User, (user) => user.receivedPizzas, { eager: false })
-  receiver: string;
+  @ManyToOne(() => User, (user) => user.receivedPizzas)
+  receiver: User;
 
   @Column()
   status: PizzaStatus;
-
-  // @Column()
-  // userId: number;
 }
