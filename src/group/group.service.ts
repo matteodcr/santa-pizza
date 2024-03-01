@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -20,6 +21,7 @@ import { User } from '../user/user.entity';
 
 @Injectable()
 export class GroupService {
+  private logger = new Logger('GroupService');
   constructor(private groupRepository: GroupRepository) {}
 
   async getGroups(
@@ -39,6 +41,9 @@ export class GroupService {
 
     try {
       const groups = await query.getMany();
+      this.logger.verbose(
+        `Got groups ${groups.map((group) => group.id + ',')} `,
+      );
       return groups.map((group: Group) => new PublicGroupDto(group));
     } catch (error) {
       throw new InternalServerErrorException();
@@ -51,7 +56,7 @@ export class GroupService {
     if (!group) {
       throw new NotFoundException(`Group with ID ${id} not found`);
     }
-
+    this.logger.verbose(`Got group ${group.id}`);
     return group;
   }
 
@@ -71,8 +76,20 @@ export class GroupService {
     group.description = description;
     group.memberships = [membership];
     group.dueDate = createGroupDto.dueDate;
-    await group.save();
-    await membership.save();
+
+    try {
+      await this.groupRepository.manager.transaction(
+        async (transactionalEntityManager) => {
+          await transactionalEntityManager.save(group);
+          await transactionalEntityManager.save(membership);
+        },
+      );
+    } catch (error) {
+      this.logger.error(`Failed to create group: ${error.message}`);
+      throw new InternalServerErrorException('Failed to create group.');
+    }
+
+    this.logger.debug(`Created group ${group.id} for user ${user.username}`);
 
     return new PublicGroupDto(group);
   }
@@ -97,6 +114,7 @@ export class GroupService {
         await transactionalEntityManager.remove(group);
       },
     );
+    this.logger.debug(`Deleted group ${id} by user ${user.username}`);
   }
 
   async updateGroupName(
@@ -114,6 +132,7 @@ export class GroupService {
     }
     group.name = name;
     await group.save();
+    this.logger.debug(`Updated group name ${id} by user ${user.username}`);
     return new PublicGroupDto(group);
   }
 
@@ -132,6 +151,9 @@ export class GroupService {
     }
     group.description = description;
     await group.save();
+    this.logger.debug(
+      `Updated group description ${id} by user ${user.username}`,
+    );
     return new PublicGroupDto(group);
   }
 
@@ -150,6 +172,7 @@ export class GroupService {
     }
     group.dueDate = dueDate;
     await group.save();
+    this.logger.debug(`Updated group due date ${id} by user ${user.username}`);
     return new PublicGroupDto(group);
   }
 }

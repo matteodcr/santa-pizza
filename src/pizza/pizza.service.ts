@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { PizzaDto } from './dto/pizza.dto';
 import { PublicPizzaDto } from './dto/public-pizza.dto';
@@ -12,6 +12,7 @@ import { UserRepository } from '../user/user.repository';
 
 @Injectable()
 export class PizzaService {
+  private logger = new Logger('PizzaService');
   constructor(
     private readonly pizzaRepository: PizzaRepository,
     private readonly userRepository: UserRepository,
@@ -48,12 +49,15 @@ export class PizzaService {
     pizza.status = PizzaStatus.OPEN;
 
     await this.pizzaRepository.save(pizza);
+    this.logger.debug(`Created Pizza ${pizza.id}`);
+
     return new PublicPizzaDto(pizza);
   }
 
   async deletePizza(id: number, user: User): Promise<void> {
     const pizza = await this.pizzaRepository.getPizzaById(id, user);
     await this.pizzaRepository.remove(pizza);
+    this.logger.debug(`Deleted Pizza ${id}`);
   }
 
   async getPizzas(user: User): Promise<Pizza[]> {
@@ -74,7 +78,10 @@ export class PizzaService {
       throw new NotFoundException('Pizza not found');
     }
     pizza.status = PizzaStatus[updatePizzaStatusDto.status];
+
     await this.pizzaRepository.save(pizza);
+    this.logger.debug(`Updated Pizza ${pizza.id}`);
+
     return pizza;
   }
 }

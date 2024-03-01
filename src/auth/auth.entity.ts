@@ -26,7 +26,7 @@ export class Auth extends BaseEntity {
   @Column()
   salt: string;
 
-  @OneToOne(() => User, (user) => user.auth) // Relation OneToOne avec User
+  @OneToOne(() => User, (user) => user.auth)
   @JoinColumn()
   user: User;
 

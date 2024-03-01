@@ -1,5 +1,5 @@
 // user.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { EditUserDto } from './dto/edit-user.dto';
 import { User } from './user.entity';
@@ -7,6 +7,8 @@ import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
+  private logger = new Logger('UserService');
+
   constructor(private userRepository: UserRepository) {}
 
   async getUser(user: User): Promise<User> {
@@ -28,6 +30,8 @@ export class UserService {
       user.allergies = editUserDto.allergies;
     }
     await user.save();
+    this.logger.debug(`User ${user.username} updated`);
+
     return user;
   }
 }

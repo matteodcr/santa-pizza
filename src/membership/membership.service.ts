@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 
@@ -14,6 +15,7 @@ import { UserRepository } from '../user/user.repository';
 
 @Injectable()
 export class MembershipService {
+  private logger = new Logger('MembershipService');
   constructor(
     private membershipRepository: MembershipRepository,
     private groupRepository: GroupRepository,
@@ -52,6 +54,8 @@ export class MembershipService {
 
     await this.membershipRepository.save(newMembership);
 
+    this.logger.debug(`User ${destUser.username} added to group ${group.id}`);
+
     return new PublicGroupDto(group);
   }
 
@@ -82,6 +86,9 @@ export class MembershipService {
       group,
     );
     await this.membershipRepository.remove(membership);
+    this.logger.debug(
+      `User ${destUser.username} removed from group ${group.id}`,
+    );
 
     return new PublicGroupDto(group);
   }
