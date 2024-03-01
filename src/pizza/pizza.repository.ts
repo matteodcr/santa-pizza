@@ -59,18 +59,28 @@ export class PizzaRepository extends Repository<Pizza> {
   }
 
   async isUserSantaInGroup(user: User, group: Group): Promise<boolean> {
-    const pizzaWithUserAsSanta = await this.createQueryBuilder('pizza')
-      .where('pizza.santaId = :userId', { userId: user.id })
-      .andWhere('pizza.groupId = :groupId', { groupId: group.id })
-      .getOne();
+    let pizzaWithUserAsSanta: Pizza;
+    try {
+      pizzaWithUserAsSanta = await this.createQueryBuilder('pizza')
+        .where('pizza.santaId = :userId', { userId: user.id })
+        .andWhere('pizza.groupId = :groupId', { groupId: group.id })
+        .getOne();
+    } catch (e) {
+      throw new InternalServerErrorException();
+    }
     return !!pizzaWithUserAsSanta;
   }
 
   async isUserReceiverInGroup(user: User, group: Group): Promise<boolean> {
-    const pizzaWithUserAsReceiver = await this.createQueryBuilder('pizza')
-      .where('pizza.receiverId = :userId', { userId: user.id })
-      .andWhere('pizza.groupId = :groupId', { groupId: group.id })
-      .getOne();
+    let pizzaWithUserAsReceiver: Pizza;
+    try {
+      pizzaWithUserAsReceiver = await this.createQueryBuilder('pizza')
+        .where('pizza.receiverId = :userId', { userId: user.id })
+        .andWhere('pizza.groupId = :groupId', { groupId: group.id })
+        .getOne();
+    } catch (e) {
+      throw new InternalServerErrorException();
+    }
     return !!pizzaWithUserAsReceiver;
   }
 

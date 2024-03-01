@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 
 import { Membership } from './membership.entity';
@@ -12,9 +16,14 @@ export class MembershipRepository extends Repository<Membership> {
   }
 
   async getMembership(user: User, group: Group): Promise<Membership | null> {
-    const membership = await this.findOne({
-      where: { userId: user.id, groupId: group.id },
-    });
+    let membership: Membership;
+    try {
+      membership = await this.findOne({
+        where: { userId: user.id, groupId: group.id },
+      });
+    } catch (e) {
+      throw new InternalServerErrorException();
+    }
     if (!membership) {
       throw new NotFoundException('Membership not found');
     }

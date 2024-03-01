@@ -10,7 +10,6 @@ export class PizzaDto {
     example: 4,
     required: true,
   })
-  @ApiProperty()
   @IsNotEmpty()
   @IsNumber()
   @Type(() => Number)
@@ -21,7 +20,6 @@ export class PizzaDto {
     required: true,
     description: 'The person who will give the pizza.',
   })
-  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   @IsDifferent('receiver', { message: 'Santa must be different from receiver' })
@@ -33,7 +31,6 @@ export class PizzaDto {
     description:
       'The person who will receive the pizza, must be different from santa.',
   })
-  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   receiver: string;
@@ -43,9 +40,7 @@ export class PizzaDto {
     required: true,
     enum: PizzaStatus,
   })
-  @ApiProperty({})
-  @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  status: string;
+  status: string[];
 }
