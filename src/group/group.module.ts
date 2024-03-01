@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { GroupController } from './group.controller';
-import { GroupService } from './group.service';
-import { GroupRepository } from './group.repository';
-import { Group } from './group.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { GroupController } from './group.controller';
+import { Group } from './group.entity';
+import { GroupRepository } from './group.repository';
+import { GroupService } from './group.service';
 import { AuthModule } from '../auth/auth.module';
-import { AuthService } from '../auth/auth.service';
-import { UserRepository } from '../auth/user.repository';
+import { AuthRepository } from '../auth/auth.repository';
 import { MembershipRepository } from '../membership/membership.repository';
 
 @Module({
@@ -15,7 +15,7 @@ import { MembershipRepository } from '../membership/membership.repository';
   providers: [
     GroupService,
     GroupRepository,
-    UserRepository,
+    AuthRepository,
     MembershipRepository,
   ],
   exports: [GroupService, GroupRepository],

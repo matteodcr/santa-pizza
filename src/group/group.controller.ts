@@ -12,11 +12,9 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { GroupService } from './group.service';
-import { GetUser } from '../auth/get-user-decorator';
-import { User } from '../auth/user.entity';
-import { CreateGroupDto } from './dto/create-group.dto';
 import { AuthGuard } from '@nestjs/passport';
+
+import { CreateGroupDto } from './dto/create-group.dto';
 import { GetGroupFilterDto } from './dto/get-group-filter.dto';
 import { PublicGroupDto } from './dto/public-group.dto';
 import {
@@ -24,7 +22,9 @@ import {
   UpdateGroupDescriptionDto,
   UpdateGroupNameDto,
 } from './dto/update-group.dto';
-import { JoinRemoveGroupDto } from '../membership/dto/join-remove-group.dto';
+import { GroupService } from './group.service';
+import { GetUser } from '../auth/get-user-decorator';
+import { User } from '../user/user.entity';
 
 @Controller('group')
 @UseGuards(AuthGuard())

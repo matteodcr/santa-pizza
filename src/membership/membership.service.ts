@@ -1,16 +1,16 @@
 import {
   ForbiddenException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { User } from '../auth/user.entity';
+
 import { JoinRemoveGroupDto } from './dto/join-remove-group.dto';
-import { PublicGroupDto } from '../group/dto/public-group.dto';
 import { Membership, Role } from './membership.entity';
 import { MembershipRepository } from './membership.repository';
+import { PublicGroupDto } from '../group/dto/public-group.dto';
 import { GroupRepository } from '../group/group.repository';
-import { UserRepository } from '../auth/user.repository';
+import { User } from '../user/user.entity';
+import { UserRepository } from '../user/user.repository';
 
 @Injectable()
 export class MembershipService {

@@ -1,5 +1,5 @@
+import { PublicUserDto } from '../../user/dto/public-user.dto';
 import { Pizza } from '../pizza.entity';
-import { PublicUserDto } from '../../auth/dto/public-user.dto';
 
 export class PublicPizzaDto {
   id: number;

@@ -1,10 +1,10 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
+import { JoinRemoveGroupDto } from './dto/join-remove-group.dto';
 import { MembershipService } from './membership.service';
 import { GetUser } from '../auth/get-user-decorator';
-import { User } from '../auth/user.entity';
-import { JoinRemoveGroupDto } from './dto/join-remove-group.dto';
+import { User } from '../user/user.entity';
 
 @Controller('membership')
 @UseGuards(AuthGuard())

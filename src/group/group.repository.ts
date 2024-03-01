@@ -1,11 +1,9 @@
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+
 import { Group } from './group.entity';
-import { User } from '../auth/user.entity';
+import { User } from '../user/user.entity';
+
 @Injectable()
 export class GroupRepository extends Repository<Group> {
   constructor(private dataSource: DataSource) {

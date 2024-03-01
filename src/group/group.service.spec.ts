@@ -1,31 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GroupService } from './group.service';
-import { GroupRepository } from './group.repository';
-import { UserRepository } from '../auth/user.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmConfigTest } from '../config/typeorm.config';
-import { getConnection, getConnectionManager } from 'typeorm';
-import { User } from '../auth/user.entity';
+
 import { CreateGroupDto } from './dto/create-group.dto';
-import { Group } from './group.entity';
+import { GroupRepository } from './group.repository';
+import { GroupService } from './group.service';
+import { AuthRepository } from '../auth/auth.repository';
+import { typeOrmConfigTest } from '../config/typeorm.config';
 
 describe('GroupService', () => {
   let groupService: GroupService;
   let groupRepository: GroupRepository;
-  let userRepository: UserRepository;
+  let userRepository: AuthRepository;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot(typeOrmConfigTest),
-        TypeOrmModule.forFeature([GroupRepository, UserRepository]),
+        TypeOrmModule.forFeature([GroupRepository, AuthRepository]),
       ],
       providers: [GroupService],
     }).compile();
 
     groupService = module.get<GroupService>(GroupService);
     groupRepository = module.get<GroupRepository>(GroupRepository);
-    userRepository = module.get<UserRepository>(UserRepository);
+    userRepository = module.get<AuthRepository>(AuthRepository);
   });
 
   it('should be defined', () => {
@@ -34,7 +32,7 @@ describe('GroupService', () => {
 
   it('should create a new group and save it to the database', async () => {
     // Données fictives pour le test
-    const user = new User();
+    const user = new user();
     user.id = 1;
     user.username = 'testuser';
 

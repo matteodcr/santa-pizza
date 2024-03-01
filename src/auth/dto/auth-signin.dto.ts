@@ -1,9 +1,21 @@
-import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+  ValidateIf,
+} from 'class-validator';
 
-export class AuthCredentialsDto {
+export class AuthSigninDto {
+  @IsEmail()
+  @ValidateIf((obj) => !obj.username)
   @IsString()
+  mail: string;
+
   @MinLength(4)
   @MaxLength(20)
+  @ValidateIf((obj) => !obj.mail)
   username: string;
 
   @IsString()

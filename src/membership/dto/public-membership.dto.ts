@@ -1,4 +1,4 @@
-import { PublicUserDto } from '../../auth/dto/public-user.dto';
+import { PublicUserDto } from '../../user/dto/public-user.dto';
 import { Membership, Role } from '../membership.entity';
 
 export class PublicMembershipDto {

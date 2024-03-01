@@ -5,8 +5,9 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Pizza } from '../pizza/pizza.entity';
+
 import { Membership, Role } from '../membership/membership.entity';
+import { Pizza } from '../pizza/pizza.entity';
 
 @Entity()
 export class Group extends BaseEntity {

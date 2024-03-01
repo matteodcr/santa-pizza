@@ -10,15 +10,16 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { PizzaService } from './pizza.service';
-import { Pizza } from './pizza.entity';
-import { PizzaDto } from './dto/pizza.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { GetUser } from '../auth/get-user-decorator';
-import { User } from '../auth/user.entity';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+
+import { PizzaDto } from './dto/pizza.dto';
 import { PublicPizzaDto } from './dto/public-pizza.dto';
 import { UpdatePizzaStatusDto } from './dto/update-pizza-status.dto';
+import { Pizza } from './pizza.entity';
+import { PizzaService } from './pizza.service';
+import { GetUser } from '../auth/get-user-decorator';
+import { User } from '../user/user.entity';
 
 @ApiTags('pizza')
 @Controller('pizza')

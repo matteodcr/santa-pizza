@@ -1,30 +1,24 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { UserRepository } from './user.repository';
-import { AuthCredentialsDto } from './dto/auth-credentials.dto';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+
+import { AuthRepository } from './auth.repository';
+import { AuthSigninDto } from './dto/auth-signin.dto';
+import { AuthSignupDto } from './dto/auth-signup.dto';
 import { JwtPayload } from './jwt-payload.interface';
-import { User } from './user.entity';
 
 @Injectable()
 export class AuthService {
   private logger = new Logger('AuthService');
   constructor(
-    private userRepository: UserRepository,
+    private authRepository: AuthRepository,
     private jwtService: JwtService,
   ) {}
-  async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
-    return this.userRepository.signUp(authCredentialsDto);
+  async signUp(authSignupDto: AuthSignupDto): Promise<void> {
+    return this.authRepository.signUp(authSignupDto);
   }
-  async signIn(
-    authCredentialsDto: AuthCredentialsDto,
-  ): Promise<{ accessToken: string }> {
+  async signIn(authSigninDto: AuthSigninDto): Promise<{ accessToken: string }> {
     const username =
-      await this.userRepository.validateUserPassword(authCredentialsDto);
+      await this.authRepository.validateUserPassword(authSigninDto);
 
     if (!username) {
       throw new UnauthorizedException('Invalid credentials');

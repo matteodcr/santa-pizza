@@ -6,8 +6,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '../auth/user.entity';
+
 import { Group } from '../group/group.entity';
+import { User } from '../user/user.entity';
 
 export enum Role {
   ADMIN = 'ADMIN',

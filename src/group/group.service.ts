@@ -4,26 +4,27 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { GroupRepository } from './group.repository';
-import { GetGroupFilterDto } from './dto/get-group-filter.dto';
-import { User } from '../auth/user.entity';
+
 import { CreateGroupDto } from './dto/create-group.dto';
-import { Group } from './group.entity';
+import { GetGroupFilterDto } from './dto/get-group-filter.dto';
 import { PublicGroupDto } from './dto/public-group.dto';
 import {
   UpdateGroupDateDto,
   UpdateGroupDescriptionDto,
   UpdateGroupNameDto,
 } from './dto/update-group.dto';
+import { Group } from './group.entity';
+import { GroupRepository } from './group.repository';
+import { AuthRepository } from '../auth/auth.repository';
 import { Membership, Role } from '../membership/membership.entity';
-import { UserRepository } from '../auth/user.repository';
 import { MembershipRepository } from '../membership/membership.repository';
+import { User } from '../user/user.entity';
 
 @Injectable()
 export class GroupService {
   constructor(
     private groupRepository: GroupRepository,
-    private userRepository: UserRepository,
+    private userRepository: AuthRepository,
     private membershipRepository: MembershipRepository,
   ) {}
 

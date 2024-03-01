@@ -5,9 +5,10 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '../auth/user.entity';
+
 import { PizzaStatus } from './pizza-status.enum';
 import { Group } from '../group/group.entity';
+import { User } from '../user/user.entity';
 
 @Entity()
 export class Pizza extends BaseEntity {

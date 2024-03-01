@@ -1,8 +1,6 @@
-import { PublicUserDto } from '../../auth/dto/public-user.dto';
-import { Group } from '../group.entity';
-import { User } from '../../auth/user.entity';
-import { Membership } from '../../membership/membership.entity';
 import { PublicMembershipDto } from '../../membership/dto/public-membership.dto';
+import { Membership } from '../../membership/membership.entity';
+import { Group } from '../group.entity';
 
 export class PublicGroupDto {
   id: number;

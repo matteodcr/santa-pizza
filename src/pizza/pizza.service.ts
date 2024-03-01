@@ -1,14 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PizzaRepository } from './pizza.repository';
-import { PizzaDto } from './dto/pizza.dto';
 
-import { Pizza } from './pizza.entity';
-import { UserRepository } from '../auth/user.repository';
-import { User } from '../auth/user.entity';
-import { GroupRepository } from '../group/group.repository';
-import { PizzaStatus } from './pizza-status.enum';
+import { PizzaDto } from './dto/pizza.dto';
 import { PublicPizzaDto } from './dto/public-pizza.dto';
 import { UpdatePizzaStatusDto } from './dto/update-pizza-status.dto';
+import { PizzaStatus } from './pizza-status.enum';
+import { Pizza } from './pizza.entity';
+import { PizzaRepository } from './pizza.repository';
+import { GroupRepository } from '../group/group.repository';
+import { User } from '../user/user.entity';
+import { UserRepository } from '../user/user.repository';
 
 @Injectable()
 export class PizzaService {

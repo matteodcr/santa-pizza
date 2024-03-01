@@ -1,8 +1,9 @@
-import { DataSource, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
+import { DataSource, Repository } from 'typeorm';
+
 import { Pizza } from './pizza.entity';
-import { User } from '../auth/user.entity';
 import { Group } from '../group/group.entity';
+import { User } from '../user/user.entity';
 
 @Injectable()
 export class PizzaRepository extends Repository<Pizza> {
