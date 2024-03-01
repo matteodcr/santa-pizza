@@ -15,18 +15,12 @@ import {
 } from './dto/update-group.dto';
 import { Group } from './group.entity';
 import { GroupRepository } from './group.repository';
-import { AuthRepository } from '../auth/auth.repository';
 import { Membership, Role } from '../membership/membership.entity';
-import { MembershipRepository } from '../membership/membership.repository';
 import { User } from '../user/user.entity';
 
 @Injectable()
 export class GroupService {
-  constructor(
-    private groupRepository: GroupRepository,
-    private userRepository: AuthRepository,
-    private membershipRepository: MembershipRepository,
-  ) {}
+  constructor(private groupRepository: GroupRepository) {}
 
   async getGroups(
     filterDto: GetGroupFilterDto,
@@ -76,7 +70,7 @@ export class GroupService {
     group.name = name;
     group.description = description;
     group.memberships = [membership];
-
+    group.dueDate = createGroupDto.dueDate;
     await group.save();
     await membership.save();
 
@@ -92,7 +86,7 @@ export class GroupService {
 
     if (!group.isAdmin(user.username)) {
       throw new ForbiddenException(
-        'You do have the right to delete the group ${id}',
+        'You do not have the right to delete the group ${id}',
       );
     }
     await this.groupRepository.manager.transaction(
@@ -115,7 +109,7 @@ export class GroupService {
 
     if (!group.isAdmin(user.username)) {
       throw new ForbiddenException(
-        'You do have the right to delete the group ${id}',
+        'You do not have the right to delete the group ${id}',
       );
     }
     group.name = name;
@@ -133,7 +127,7 @@ export class GroupService {
 
     if (!group.isAdmin(user.username)) {
       throw new ForbiddenException(
-        'You do have the right to delete the group ${id}',
+        'You do not have the right to delete the group ${id}',
       );
     }
     group.description = description;

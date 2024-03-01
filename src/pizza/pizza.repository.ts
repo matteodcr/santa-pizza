@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 
 import { Pizza } from './pizza.entity';
@@ -11,29 +15,47 @@ export class PizzaRepository extends Repository<Pizza> {
     super(Pizza, dataSource.createEntityManager());
   }
   async getPizzas(user: User): Promise<Pizza[]> {
-    return this.createQueryBuilder('pizza')
-      .leftJoinAndSelect('pizza.group', 'group')
-      .leftJoinAndSelect('group.memberships', 'membership')
-      .leftJoinAndSelect('membership.user', 'user')
-      .leftJoinAndSelect('pizza.santa', 'santa')
-      .leftJoinAndSelect('pizza.receiver', 'receiver')
-      .addSelect('user.username')
-      .addSelect('user.id')
-      .where('membership.user = :userId', { userId: user.id })
-      .getMany();
+    let pizzas: Pizza[];
+    try {
+      pizzas = await this.createQueryBuilder('pizza')
+        .leftJoinAndSelect('pizza.group', 'group')
+        .leftJoinAndSelect('group.memberships', 'membership')
+        .leftJoinAndSelect('membership.user', 'user')
+        .leftJoinAndSelect('pizza.santa', 'santa')
+        .leftJoinAndSelect('pizza.receiver', 'receiver')
+        .addSelect('user.username')
+        .addSelect('user.id')
+        .where('membership.user = :userId', { userId: user.id })
+        .getMany();
+    } catch (e) {
+      throw new InternalServerErrorException();
+    }
+    if (!pizzas) {
+      throw new NotFoundException('No pizzas found');
+    }
+    return pizzas;
   }
 
   async getPizzaById(id: number, user: User): Promise<Pizza | undefined> {
-    return await this.createQueryBuilder('pizza')
-      .leftJoinAndSelect('pizza.santa', 'santa')
-      .leftJoinAndSelect('pizza.receiver', 'receiver')
-      .leftJoinAndSelect('pizza.group', 'group')
-      .leftJoinAndSelect('group.memberships', 'groupMemberships')
-      .where('pizza.id = :id', { id })
-      .andWhere('(pizza.santaId = :userId OR pizza.receiverId = :userId)', {
-        userId: user.id,
-      })
-      .getOne();
+    let pizza: Pizza;
+    try {
+      pizza = await this.createQueryBuilder('pizza')
+        .leftJoinAndSelect('pizza.santa', 'santa')
+        .leftJoinAndSelect('pizza.receiver', 'receiver')
+        .leftJoinAndSelect('pizza.group', 'group')
+        .leftJoinAndSelect('group.memberships', 'groupMemberships')
+        .where('pizza.id = :id', { id })
+        .andWhere('(pizza.santaId = :userId OR pizza.receiverId = :userId)', {
+          userId: user.id,
+        })
+        .getOne();
+    } catch (e) {
+      throw new InternalServerErrorException();
+    }
+    if (!pizza) {
+      throw new NotFoundException(`Pizza with ID ${id} not found`);
+    }
+    return pizza;
   }
 
   async isUserSantaInGroup(user: User, group: Group): Promise<boolean> {

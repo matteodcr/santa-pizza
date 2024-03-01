@@ -33,6 +33,6 @@ export class User extends BaseEntity {
   @OneToMany(() => Pizza, (pizza) => pizza.receiver)
   receivedPizzas: Pizza[];
 
-  @OneToOne(() => Auth, (auth) => auth.user)
+  @OneToOne(() => Auth, (auth) => auth.user) // Relation inverse OneToOne avec Auth
   auth: Auth;
 }

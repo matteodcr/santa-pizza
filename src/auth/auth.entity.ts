@@ -3,6 +3,7 @@ import {
   BaseEntity,
   Column,
   Entity,
+  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
   Unique,
@@ -25,7 +26,8 @@ export class Auth extends BaseEntity {
   @Column()
   salt: string;
 
-  @OneToOne(() => User, (user) => user.auth)
+  @OneToOne(() => User, (user) => user.auth) // Relation OneToOne avec User
+  @JoinColumn()
   user: User;
 
   async validatePassword(password: string): Promise<boolean> {

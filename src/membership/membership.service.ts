@@ -70,10 +70,10 @@ export class MembershipService {
 
     if (
       !group.isAdmin(user.username) ||
-      user.username === joinRemoveGroupDto.username
+      !(user.username === joinRemoveGroupDto.username)
     ) {
       throw new ForbiddenException(
-        'You do have the right to remove an user in the group ${id}',
+        'You do not have the right to remove an user in the group ${id}',
       );
     }
 

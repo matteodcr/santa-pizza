@@ -25,15 +25,13 @@ export class AuthRepository extends Repository<Auth> {
       await this.manager.transaction(async (transactionalEntityManager) => {
         const user = new User();
         user.username = username;
-
         await transactionalEntityManager.save(user);
 
         const auth = new Auth();
         auth.mail = mail;
         auth.salt = await bcrypt.genSalt();
         auth.password = await this.hashPassword(password, auth.salt);
-        // auth.userId = savedUser.id;
-
+        auth.user = user;
         await transactionalEntityManager.save(auth);
       });
     } catch (error) {
@@ -59,8 +57,12 @@ export class AuthRepository extends Repository<Auth> {
 
   async getByMail(mail: string): Promise<Auth | undefined> {
     try {
-      return await this.findOneBy({ mail });
+      return await this.createQueryBuilder('auth')
+        .leftJoinAndSelect('auth.user', 'user')
+        .where('auth.mail = :mail', { mail })
+        .getOne();
     } catch (error) {
+      console.error(error);
       throw new Error(`Invalid mail`);
     }
   }

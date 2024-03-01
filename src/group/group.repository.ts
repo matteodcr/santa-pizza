@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 
 import { Group } from './group.entity';
@@ -18,12 +22,17 @@ export class GroupRepository extends Repository<Group> {
   }
 
   async getGroupById(id: number, user: User): Promise<Group> {
+    let group: Group;
     try {
-      return await this.getGroups(user)
+      group = await this.getGroups(user)
         .andWhere('group.id = :groupId', { groupId: id })
         .getOne();
     } catch (e) {
       throw new InternalServerErrorException();
     }
+    if (!group) {
+      throw new NotFoundException(`Group with ID ${id} not found`);
+    }
+    return group;
   }
 }

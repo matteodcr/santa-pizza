@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 import { JoinRemoveGroupDto } from './dto/join-remove-group.dto';
@@ -19,7 +19,7 @@ export class MembershipController {
     return this.membershipService.addUserToGroup(user, joinGroupDto);
   }
 
-  @Post('/remove')
+  @Delete('/remove')
   removeUserFromGroup(
     @GetUser() user: User,
     @Body() joinGroupDto: JoinRemoveGroupDto,

@@ -1,21 +1,24 @@
 import {
   IsEmail,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
   MinLength,
-  ValidateIf,
 } from 'class-validator';
 
+import { ExclusiveFields } from '../pipes/username-mail.pipe';
+
 export class AuthSigninDto {
+  @ExclusiveFields(['mail', 'username'])
   @IsEmail()
-  @ValidateIf((obj) => !obj.username)
   @IsString()
+  @IsOptional()
   mail: string;
 
   @MinLength(4)
   @MaxLength(20)
-  @ValidateIf((obj) => !obj.mail)
+  @IsOptional()
   username: string;
 
   @IsString()
