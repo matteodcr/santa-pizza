@@ -5,7 +5,7 @@ import { IsDifferent } from '../../pizza/pipes/is-different.pipe';
 
 export class EditUserDto {
   @ApiProperty({
-    example: 'Marc',
+    example: 'Marc Roudier',
     required: true,
     type: String,
   })

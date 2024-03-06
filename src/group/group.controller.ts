@@ -50,7 +50,7 @@ export class GroupController {
     isArray: true,
   })
   @Get()
-  getGroups(
+  async getGroups(
     @Query(ValidationPipe) filterDto: GetGroupFilterDto,
     @GetUser() user: User,
   ): Promise<PublicGroupDto[]> {
@@ -66,7 +66,10 @@ export class GroupController {
     type: PublicGroupDto,
   })
   @Get('/:id')
-  getGroupById(@Param('id', ParseIntPipe) id: number, @GetUser() user: User) {
+  getGroupById(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: User,
+  ): Promise<PublicGroupDto> {
     return this.groupService.getGroupById(id, user);
   }
 

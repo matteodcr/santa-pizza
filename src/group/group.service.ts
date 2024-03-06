@@ -41,6 +41,7 @@ export class GroupService {
 
     try {
       const groups = await query.getMany();
+      console.log(groups.map((group) => group.memberships.map((m) => m.user)));
       this.logger.verbose(
         `Got groups ${groups.map((group) => group.id + ',')} `,
       );

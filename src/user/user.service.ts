@@ -21,7 +21,7 @@ export class UserService {
 
   async updateUser(editUserDto: EditUserDto, user: User): Promise<User> {
     if (editUserDto.name) {
-      user.username = editUserDto.name;
+      user.name = editUserDto.name;
     }
     if (editUserDto.description) {
       user.description = editUserDto.description;

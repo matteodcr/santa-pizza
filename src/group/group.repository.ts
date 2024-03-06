@@ -15,10 +15,11 @@ export class GroupRepository extends Repository<Group> {
   }
   getGroups(user: User) {
     return this.createQueryBuilder('group')
-      .innerJoinAndSelect('group.memberships', 'membership')
+      .innerJoin('group.memberships', 'membership')
       .innerJoin('membership.user', 'user')
-      .addSelect(['user.username', 'user.id'])
-      .where('user.id = :userId', { userId: user.id });
+      .where('user.id = :userId', { userId: user.id })
+      .leftJoinAndSelect('group.memberships', 'groupMembership')
+      .leftJoinAndSelect('groupMembership.user', 'groupUser');
   }
 
   async getGroupById(id: number, user: User): Promise<Group> {
@@ -27,6 +28,7 @@ export class GroupRepository extends Repository<Group> {
       group = await this.getGroups(user)
         .andWhere('group.id = :groupId', { groupId: id })
         .getOne();
+      console.log(group.memberships);
     } catch (e) {
       throw new InternalServerErrorException();
     }

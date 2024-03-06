@@ -9,13 +9,35 @@ export class PublicUserDto {
   id: number;
 
   @ApiProperty({
-    example: 'Marc',
+    example: 'marcrd',
     type: String,
   })
   username: string;
 
+  @ApiProperty({
+    example: 'Marc',
+    type: String,
+  })
+  name: string;
+
+  @ApiProperty({
+    example: 'I am the best user ever!',
+    type: String,
+  })
+  description: string;
+
+  @ApiProperty({
+    example: ['gluten', 'lactose'],
+    type: String,
+    isArray: true,
+  })
+  allergies: string[];
+
   constructor(user: User) {
     this.id = user.id;
     this.username = user.username;
+    this.description = user.description;
+    this.name = user.name;
+    this.allergies = user.allergies;
   }
 }

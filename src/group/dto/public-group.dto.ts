@@ -25,7 +25,7 @@ export class PublicGroupDto {
     isArray: true,
     type: PublicMembershipDto,
   })
-  memberhips: PublicMembershipDto[];
+  memberships: PublicMembershipDto[];
 
   @ApiProperty({ description: 'The date of the end of the group', type: Date })
   dueDate: Date;
@@ -40,7 +40,7 @@ export class PublicGroupDto {
     this.id = group.id;
     this.name = group.name;
     this.description = group.description;
-    this.memberhips = group.memberships.map(
+    this.memberships = group.memberships.map(
       (membership: Membership) => new PublicMembershipDto(membership),
     );
     this.dueDate = group.dueDate;
