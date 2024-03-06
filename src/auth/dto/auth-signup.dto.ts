@@ -22,6 +22,7 @@ export class AuthSignupDto {
   @IsString()
   @MinLength(4)
   @MaxLength(20)
+  @Matches(/^[a-zA-Z0-9_.]{4,20}$/)
   username: string;
 
   @ApiProperty({

@@ -11,6 +11,7 @@ import { Auth } from './auth.entity';
 import { AuthSigninDto } from './dto/auth-signin.dto';
 import { AuthSignupDto } from './dto/auth-signup.dto';
 import { User } from '../user/user.entity';
+import { generateRandomName } from '../utils/UsernameGenerator';
 
 @Injectable()
 export class AuthRepository extends Repository<Auth> {
@@ -25,6 +26,7 @@ export class AuthRepository extends Repository<Auth> {
       await this.manager.transaction(async (transactionalEntityManager) => {
         const user = new User();
         user.username = username;
+        user.name = generateRandomName();
         await transactionalEntityManager.save(user);
 
         const auth = new Auth();
