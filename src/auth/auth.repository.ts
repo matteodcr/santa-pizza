@@ -64,7 +64,6 @@ export class AuthRepository extends Repository<Auth> {
         .where('auth.mail = :mail', { mail })
         .getOne();
     } catch (error) {
-      console.error(error);
       throw new Error(`Invalid mail`);
     }
   }

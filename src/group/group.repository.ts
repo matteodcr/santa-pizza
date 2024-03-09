@@ -28,7 +28,6 @@ export class GroupRepository extends Repository<Group> {
       group = await this.getGroups(user)
         .andWhere('group.id = :groupId', { groupId: id })
         .getOne();
-      console.log(group.memberships);
     } catch (e) {
       throw new InternalServerErrorException();
     }
