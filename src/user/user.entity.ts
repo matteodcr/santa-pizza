@@ -10,7 +10,6 @@ import {
 
 import { Auth } from '../auth/auth.entity';
 import { Membership } from '../membership/membership.entity';
-import { Pizza } from '../pizza/pizza.entity';
 
 @Entity()
 @Unique(['username'])
@@ -32,12 +31,6 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Membership, (membership) => membership.user)
   memberships: Membership[];
-
-  @OneToMany(() => Pizza, (pizza) => pizza.santa)
-  sentPizzas: Pizza[];
-
-  @OneToMany(() => Pizza, (pizza) => pizza.receiver)
-  receivedPizzas: Pizza[];
 
   @OneToOne(() => Auth, (auth) => auth.user) // Relation inverse OneToOne avec Auth
   auth: Auth;

@@ -157,4 +157,20 @@ export class GroupController {
   ): Promise<PublicGroupDto> {
     return this.groupService.updateGroupDate(id, user, updateGroupDateDto);
   }
+
+  @ApiOperation({
+    summary: 'Update a group date by its id',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'The group dueDate has been successfully updated.',
+    type: PublicGroupDto,
+  })
+  @Patch('/:id/associate')
+  associatePizzas(
+    @Param('id') id: number,
+    @GetUser() user: User,
+  ): Promise<void> {
+    return this.groupService.associatePizzasByUser(id, user);
+  }
 }

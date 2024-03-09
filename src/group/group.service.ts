@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 
 import { CreateGroupDto } from './dto/create-group.dto';
 import { GetGroupFilterDto } from './dto/get-group-filter.dto';
@@ -14,15 +15,25 @@ import {
   UpdateGroupDescriptionDto,
   UpdateGroupNameDto,
 } from './dto/update-group.dto';
+import { GroupStatus } from './group-status.enum';
 import { Group } from './group.entity';
 import { GroupRepository } from './group.repository';
 import { GroupRole, Membership } from '../membership/membership.entity';
+import { MembershipRepository } from '../membership/membership.repository';
+import { PizzaStatus } from '../pizza/pizza-status.enum';
+import { Pizza } from '../pizza/pizza.entity';
+import { PizzaRepository } from '../pizza/pizza.repository';
 import { User } from '../user/user.entity';
+import { shuffleArray } from '../utils/ShuffleArray';
 
 @Injectable()
 export class GroupService {
   private logger = new Logger('GroupService');
-  constructor(private groupRepository: GroupRepository) {}
+  constructor(
+    private groupRepository: GroupRepository,
+    private membershipRepository: MembershipRepository,
+    private pizzaRepository: PizzaRepository,
+  ) {}
 
   async getGroups(
     filterDto: GetGroupFilterDto,
@@ -41,7 +52,6 @@ export class GroupService {
 
     try {
       const groups = await query.getMany();
-      console.log(groups.map((group) => group.memberships.map((m) => m.user)));
       this.logger.verbose(
         `Got groups ${groups.map((group) => group.id + ',')} `,
       );
@@ -77,12 +87,19 @@ export class GroupService {
     group.description = description;
     group.memberships = [membership];
     group.dueDate = createGroupDto.dueDate;
+    group.status = GroupStatus.OPEN;
+
+    const pizza = new Pizza();
+    pizza.group = group;
+    pizza.santaMembership = membership;
+    pizza.status = PizzaStatus.OPEN;
 
     try {
       await this.groupRepository.manager.transaction(
         async (transactionalEntityManager) => {
           await transactionalEntityManager.save(group);
           await transactionalEntityManager.save(membership);
+          await transactionalEntityManager.save(pizza);
         },
       );
     } catch (error) {
@@ -175,5 +192,76 @@ export class GroupService {
     await group.save();
     this.logger.debug(`Updated group due date ${id} by user ${user.username}`);
     return new PublicGroupDto(group);
+  }
+
+  async associatePizzasByUser(id: number, user: User) {
+    const group = await this.groupRepository.getGroupById(id, user);
+    if (group.isAdmin(user.username)) {
+      return await this.associatePizzas(group);
+    } else {
+      throw new ForbiddenException(
+        'You do not have the right to associate pizzas',
+      );
+    }
+  }
+
+  async associatePizzas(group: Group): Promise<void> {
+    const members = await this.membershipRepository.getAllMemberships(group);
+
+    const membersCopy = [...members];
+
+    shuffleArray(membersCopy);
+
+    await this.groupRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        const assignedPizzas: Pizza[] = [];
+        for (const member of members) {
+          const availablePizza = await this.getAvailablePizza(
+            group,
+            assignedPizzas,
+            member,
+          );
+
+          availablePizza.receiverMembership = member;
+          availablePizza.status = PizzaStatus.ASSOCIATED;
+          assignedPizzas.push(availablePizza);
+          await transactionalEntityManager.save(availablePizza);
+        }
+        group.status = GroupStatus.ASSOCIATED;
+        await transactionalEntityManager.save(group);
+      },
+    );
+  }
+
+  private async getAvailablePizza(
+    group: Group,
+    assignedPizzas: Pizza[],
+    receiver: Membership,
+  ): Promise<Pizza> {
+    const availablePizzas =
+      await this.pizzaRepository.findPizzasWithOpenStatusAndDifferentSanta(
+        receiver.user,
+      );
+
+    if (availablePizzas.length === 0) {
+      throw new InternalServerErrorException(
+        'Not enough available pizzas to assign.',
+      );
+    }
+
+    return availablePizzas[Math.floor(Math.random() * availablePizzas.length)];
+  }
+
+  @Cron('*/30 * * * * *')
+  async checkGroups() {
+    this.logger.verbose(`Associating pizzas`);
+    const currentDate = new Date();
+    const allGroups = await this.groupRepository.find();
+    for (const group of allGroups) {
+      if (currentDate >= group.dueDate && group.status === GroupStatus.OPEN) {
+        this.logger.debug(`Associating ${group.id}`);
+        await this.associatePizzas(group);
+      }
+    }
   }
 }

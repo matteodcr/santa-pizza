@@ -7,6 +7,7 @@ import { PizzaStatus } from './pizza-status.enum';
 import { Pizza } from './pizza.entity';
 import { PizzaRepository } from './pizza.repository';
 import { GroupRepository } from '../group/group.repository';
+import { MembershipRepository } from '../membership/membership.repository';
 import { User } from '../user/user.entity';
 import { UserRepository } from '../user/user.repository';
 
@@ -16,6 +17,7 @@ export class PizzaService {
   constructor(
     private readonly pizzaRepository: PizzaRepository,
     private readonly userRepository: UserRepository,
+    private readonly membershipRepository: MembershipRepository,
     private readonly groupRepository: GroupRepository,
   ) {}
 
@@ -25,24 +27,27 @@ export class PizzaService {
       pizzaDto.groupId,
       user,
     );
+    const santa = await this.userRepository.getUser(pizzaDto.santa);
+    const receiver = await this.userRepository.getUser(pizzaDto.receiver);
+
     // TODO: Directly get them from one request instead of mutliplying useless requests
-    pizza.santa = await this.userRepository.getUser(pizzaDto.santa);
-    pizza.receiver = await this.userRepository.getUser(pizzaDto.receiver);
-    if (
-      await this.pizzaRepository.isUserReceiverInGroup(
-        pizza.receiver,
-        pizza.group,
-      )
-    ) {
+    pizza.santaMembership = await this.membershipRepository.getMembership(
+      santa,
+      pizza.group,
+    );
+    pizza.receiverMembership = await this.membershipRepository.getMembership(
+      receiver,
+      pizza.group,
+    );
+
+    if (await this.pizzaRepository.isUserReceiverInGroup(santa, pizza.group)) {
       throw new NotFoundException(
-        `${pizza.receiver.username} is already receiver in this group`,
+        `${santa.username} is already receiver in this group`,
       );
     }
-    if (
-      await this.pizzaRepository.isUserSantaInGroup(pizza.santa, pizza.group)
-    ) {
+    if (await this.pizzaRepository.isUserSantaInGroup(receiver, pizza.group)) {
       throw new NotFoundException(
-        `${pizza.santa.username} is already santa in this group`,
+        `${receiver.username} is already santa in this group`,
       );
     }
 

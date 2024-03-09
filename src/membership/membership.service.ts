@@ -10,6 +10,8 @@ import { GroupRole, Membership } from './membership.entity';
 import { MembershipRepository } from './membership.repository';
 import { PublicGroupDto } from '../group/dto/public-group.dto';
 import { GroupRepository } from '../group/group.repository';
+import { PizzaStatus } from '../pizza/pizza-status.enum';
+import { Pizza } from '../pizza/pizza.entity';
 import { User } from '../user/user.entity';
 import { UserRepository } from '../user/user.repository';
 
@@ -52,7 +54,17 @@ export class MembershipService {
     newMembership.role = GroupRole.USER; // or whatever default role you want to assign
     group.memberships.push(newMembership);
 
-    await this.membershipRepository.save(newMembership);
+    const pizza = new Pizza();
+    pizza.santaMembership = newMembership;
+    pizza.group = group;
+    pizza.status = PizzaStatus.OPEN;
+
+    await this.groupRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        await transactionalEntityManager.save(newMembership);
+        await transactionalEntityManager.save(pizza);
+      },
+    );
 
     this.logger.debug(`User ${destUser.username} added to group ${group.id}`);
 

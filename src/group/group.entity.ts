@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+import { GroupStatus } from './group-status.enum';
 import { GroupRole, Membership } from '../membership/membership.entity';
 import { Pizza } from '../pizza/pizza.entity';
 
@@ -26,6 +27,9 @@ export class Group extends BaseEntity {
 
   @Column({ type: 'timestamp', nullable: true })
   dueDate: Date;
+
+  @Column()
+  status: GroupStatus;
 
   @OneToMany(() => Membership, (membership) => membership.group)
   memberships: Membership[];

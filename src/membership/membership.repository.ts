@@ -29,6 +29,22 @@ export class MembershipRepository extends Repository<Membership> {
     }
     return membership;
   }
+
+  async getAllMemberships(group: Group): Promise<Membership[]> {
+    let memberships: Membership[];
+    try {
+      memberships = await this.createQueryBuilder('membership')
+        .leftJoinAndSelect('membership.user', 'user')
+        .where('membership.groupId = :groupId', { groupId: group.id })
+        .getMany();
+    } catch (e) {
+      throw new InternalServerErrorException();
+    }
+    if (!memberships) {
+      throw new NotFoundException('No memberships found');
+    }
+    return memberships;
+  }
   async isMemberOf(user: User, group: Group): Promise<boolean> {
     const membership = await this.findOne({
       where: { userId: user.id, groupId: group.id },

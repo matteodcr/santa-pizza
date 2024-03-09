@@ -2,13 +2,15 @@ import {
   BaseEntity,
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { PizzaStatus } from './pizza-status.enum';
 import { Group } from '../group/group.entity';
-import { User } from '../user/user.entity';
+import { Membership } from '../membership/membership.entity';
 
 @Entity()
 export class Pizza extends BaseEntity {
@@ -18,11 +20,16 @@ export class Pizza extends BaseEntity {
   @ManyToOne(() => Group, (group) => group.pizzas)
   group: Group;
 
-  @ManyToOne(() => User, (user) => user.sentPizzas)
-  santa: User;
+  @OneToOne(() => Membership, (membership) => membership.santaPizza)
+  @JoinColumn()
+  santaMembership: Membership;
 
-  @ManyToOne(() => User, (user) => user.receivedPizzas)
-  receiver: User;
+  @OneToOne(() => Membership, (membership) => membership.receiverPizza)
+  @JoinColumn()
+  receiverMembership: Membership;
+
+  @Column({ nullable: true })
+  description: string;
 
   @Column()
   status: PizzaStatus;

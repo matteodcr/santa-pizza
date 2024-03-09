@@ -8,6 +8,7 @@ import { GroupService } from './group.service';
 import { AuthModule } from '../auth/auth.module';
 import { AuthRepository } from '../auth/auth.repository';
 import { MembershipRepository } from '../membership/membership.repository';
+import { PizzaRepository } from '../pizza/pizza.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Group]), AuthModule],
@@ -17,6 +18,7 @@ import { MembershipRepository } from '../membership/membership.repository';
     GroupRepository,
     AuthRepository,
     MembershipRepository,
+    PizzaRepository,
   ],
   exports: [GroupService, GroupRepository],
 })

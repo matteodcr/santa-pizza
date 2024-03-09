@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 
+import { PizzaStatus } from './pizza-status.enum';
 import { Pizza } from './pizza.entity';
 import { Group } from '../group/group.entity';
 import { User } from '../user/user.entity';
@@ -33,6 +34,40 @@ export class PizzaRepository extends Repository<Pizza> {
     if (!pizzas) {
       throw new NotFoundException('No pizzas found');
     }
+    return pizzas;
+  }
+
+  async getPizzasOfGroup(group: Group): Promise<Pizza[]> {
+    let pizzas: Pizza[];
+    try {
+      pizzas = await this.createQueryBuilder('pizza')
+        .leftJoinAndSelect('pizza.group', 'group')
+        .where('group.id = :groupId', { groupId: group.id })
+        .getMany();
+    } catch (e) {
+      throw new InternalServerErrorException();
+    }
+    if (!pizzas) {
+      throw new NotFoundException('No pizzas found');
+    }
+    return pizzas;
+  }
+
+  async findPizzasWithOpenStatusAndDifferentSanta(
+    member: User,
+  ): Promise<Pizza[]> {
+    let pizzas: Pizza[];
+
+    try {
+      pizzas = await this.createQueryBuilder('pizza')
+        .innerJoinAndSelect('pizza.santaMembership', 'santaMembership')
+        .where('pizza.status = :status', { status: PizzaStatus.OPEN })
+        .andWhere('santaMembership.userId != :userId', { userId: member.id })
+        .getMany();
+    } catch (e) {
+      throw new InternalServerErrorException();
+    }
+
     return pizzas;
   }
 

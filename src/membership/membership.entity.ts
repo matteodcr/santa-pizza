@@ -4,10 +4,12 @@ import {
   Column,
   Entity,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { Group } from '../group/group.entity';
+import { Pizza } from '../pizza/pizza.entity';
 import { User } from '../user/user.entity';
 
 export enum GroupRole {
@@ -28,6 +30,12 @@ export class Membership extends BaseEntity {
 
   @Column()
   userId: number;
+
+  @OneToOne(() => Pizza, (pizza) => pizza.santaMembership)
+  santaPizza: Pizza;
+
+  @OneToOne(() => Pizza, (pizza) => pizza.receiverMembership)
+  receiverPizza: Pizza;
 
   @Column()
   groupId: number;
