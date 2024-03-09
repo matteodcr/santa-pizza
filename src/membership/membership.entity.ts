@@ -10,7 +10,7 @@ import {
 import { Group } from '../group/group.entity';
 import { User } from '../user/user.entity';
 
-export enum Role {
+export enum GroupRole {
   ADMIN = 'ADMIN',
   USER = 'USER',
 }
@@ -32,6 +32,6 @@ export class Membership extends BaseEntity {
   @Column()
   groupId: number;
 
-  @Column({ default: Role.USER })
-  role: Role;
+  @Column({ default: GroupRole.USER })
+  role: GroupRole;
 }

@@ -16,7 +16,7 @@ import {
 } from './dto/update-group.dto';
 import { Group } from './group.entity';
 import { GroupRepository } from './group.repository';
-import { Membership, Role } from '../membership/membership.entity';
+import { GroupRole, Membership } from '../membership/membership.entity';
 import { User } from '../user/user.entity';
 
 @Injectable()
@@ -69,7 +69,7 @@ export class GroupService {
 
     const membership = new Membership();
     membership.user = user;
-    membership.role = Role.ADMIN;
+    membership.role = GroupRole.ADMIN;
 
     const group = new Group();
     membership.group = group;

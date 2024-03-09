@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { Membership, Role } from '../membership/membership.entity';
+import { GroupRole, Membership } from '../membership/membership.entity';
 import { Pizza } from '../pizza/pizza.entity';
 
 @Entity()
@@ -36,7 +36,8 @@ export class Group extends BaseEntity {
   isAdmin(username: string): boolean {
     return this.memberships.some(
       (membership) =>
-        membership.user.username === username && membership.role === Role.ADMIN,
+        membership.user.username === username &&
+        membership.role === GroupRole.ADMIN,
     );
   }
 }

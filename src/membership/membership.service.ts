@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { JoinRemoveGroupDto } from './dto/join-remove-group.dto';
-import { Membership, Role } from './membership.entity';
+import { GroupRole, Membership } from './membership.entity';
 import { MembershipRepository } from './membership.repository';
 import { PublicGroupDto } from '../group/dto/public-group.dto';
 import { GroupRepository } from '../group/group.repository';
@@ -49,7 +49,7 @@ export class MembershipService {
     const newMembership = new Membership();
     newMembership.user = destUser;
     newMembership.groupId = joinRemoveGroupDto.groupId;
-    newMembership.role = Role.USER; // or whatever default role you want to assign
+    newMembership.role = GroupRole.USER; // or whatever default role you want to assign
     group.memberships.push(newMembership);
 
     await this.membershipRepository.save(newMembership);

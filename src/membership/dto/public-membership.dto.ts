@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 import { PublicUserDto } from '../../user/dto/public-user.dto';
-import { Membership, Role } from '../membership.entity';
+import { GroupRole, Membership } from '../membership.entity';
 
 export class PublicMembershipDto {
   @ApiProperty({
@@ -13,9 +13,9 @@ export class PublicMembershipDto {
 
   @ApiProperty({
     example: 'ADMIN',
-    enum: Role,
+    enum: GroupRole,
   })
-  role: Role;
+  role: GroupRole;
 
   constructor(membership: Membership) {
     this.id = membership.id;
