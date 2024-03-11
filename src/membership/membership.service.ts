@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
+import { ChangeRoleDto } from './dto/change-role.dto';
 import { JoinRemoveGroupDto } from './dto/join-remove-group.dto';
 import { GroupRole, Membership } from './membership.entity';
 import { MembershipRepository } from './membership.repository';
@@ -12,6 +13,7 @@ import { PublicGroupDto } from '../group/dto/public-group.dto';
 import { GroupRepository } from '../group/group.repository';
 import { PizzaStatus } from '../pizza/pizza-status.enum';
 import { Pizza } from '../pizza/pizza.entity';
+import { PizzaRepository } from '../pizza/pizza.repository';
 import { User } from '../user/user.entity';
 import { UserRepository } from '../user/user.repository';
 
@@ -21,6 +23,7 @@ export class MembershipService {
   constructor(
     private membershipRepository: MembershipRepository,
     private groupRepository: GroupRepository,
+    private pizzaRepository: PizzaRepository,
     private userRepository: UserRepository,
   ) {}
   async addUserToGroup(
@@ -51,7 +54,7 @@ export class MembershipService {
     const newMembership = new Membership();
     newMembership.user = destUser;
     newMembership.groupId = joinRemoveGroupDto.groupId;
-    newMembership.role = GroupRole.USER; // or whatever default role you want to assign
+    newMembership.role = GroupRole.USER;
     group.memberships.push(newMembership);
 
     const pizza = new Pizza();
@@ -86,7 +89,8 @@ export class MembershipService {
 
     if (
       !group.isAdmin(user.username) ||
-      !(user.username === joinRemoveGroupDto.username)
+      user.username === joinRemoveGroupDto.username ||
+      group.isAdmin(joinRemoveGroupDto.username)
     ) {
       throw new ForbiddenException(
         'You do not have the right to remove an user in the group ${id}',
@@ -97,11 +101,38 @@ export class MembershipService {
       destUser,
       group,
     );
+    await this.pizzaRepository.remove(membership.santaPizza);
     await this.membershipRepository.remove(membership);
     this.logger.debug(
       `User ${destUser.username} removed from group ${group.id}`,
     );
 
     return new PublicGroupDto(group);
+  }
+
+  async changeRole(user: User, changeRoleDto: ChangeRoleDto) {
+    const userToModify = await this.userRepository.getUser(
+      changeRoleDto.username,
+    );
+
+    const group = await this.groupRepository.getGroupById(
+      changeRoleDto.groupId,
+      user,
+    );
+
+    const membership = await this.membershipRepository.getMembership(
+      userToModify,
+      group,
+    );
+
+    if (!group.isAdmin(user.username) || membership.role === GroupRole.ADMIN) {
+      throw new ForbiddenException(
+        `You do not have the right to change the role of an user in the group ${changeRoleDto.groupId}`,
+      );
+    }
+    membership.role = changeRoleDto.role;
+    await membership.save();
+
+    return membership;
   }
 }

@@ -16,18 +16,18 @@ export class MembershipRepository extends Repository<Membership> {
   }
 
   async getMembership(user: User, group: Group): Promise<Membership | null> {
-    let membership: Membership;
     try {
-      membership = await this.findOne({
-        where: { userId: user.id, groupId: group.id },
-      });
+      const membership = await this.createQueryBuilder('membership')
+        .where('membership.userId = :userId', { userId: user.id })
+        .andWhere('membership.groupId = :groupId', { groupId: group.id })
+        .leftJoinAndSelect('membership.santaPizza', 'santaPizza')
+        .leftJoinAndSelect('membership.receiverPizza', 'receiverPizza')
+        .getOne();
+
+      return membership || null;
     } catch (e) {
       throw new InternalServerErrorException();
     }
-    if (!membership) {
-      throw new NotFoundException('Membership not found');
-    }
-    return membership;
   }
 
   async getAllMemberships(group: Group): Promise<Membership[]> {

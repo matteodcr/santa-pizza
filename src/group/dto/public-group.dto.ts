@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 import { PublicMembershipDto } from '../../membership/dto/public-membership.dto';
 import { Membership } from '../../membership/membership.entity';
+import { GroupStatus } from '../group-status.enum';
 import { Group } from '../group.entity';
 
 export class PublicGroupDto {
@@ -36,6 +37,12 @@ export class PublicGroupDto {
   })
   createdAt: Date;
 
+  @ApiProperty({
+    description: 'The status of the group',
+    enum: GroupStatus,
+  })
+  status: GroupStatus;
+
   constructor(group: Group) {
     this.id = group.id;
     this.name = group.name;
@@ -45,5 +52,6 @@ export class PublicGroupDto {
     );
     this.dueDate = group.dueDate;
     this.createdAt = group.createdAt;
+    this.status = group.status;
   }
 }

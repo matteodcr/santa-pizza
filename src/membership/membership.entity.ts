@@ -29,6 +29,9 @@ export class Membership extends BaseEntity {
   group: Group;
 
   @Column()
+  groupId: number;
+
+  @Column()
   userId: number;
 
   @OneToOne(() => Pizza, (pizza) => pizza.santaMembership)
@@ -36,9 +39,6 @@ export class Membership extends BaseEntity {
 
   @OneToOne(() => Pizza, (pizza) => pizza.receiverMembership)
   receiverPizza: Pizza;
-
-  @Column()
-  groupId: number;
 
   @Column({ default: GroupRole.USER })
   role: GroupRole;

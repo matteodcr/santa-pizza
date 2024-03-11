@@ -19,7 +19,14 @@ export class GroupRepository extends Repository<Group> {
       .innerJoin('membership.user', 'user')
       .where('user.id = :userId', { userId: user.id })
       .leftJoinAndSelect('group.memberships', 'groupMembership')
-      .leftJoinAndSelect('groupMembership.user', 'groupUser');
+      .leftJoinAndSelect('groupMembership.user', 'groupUser')
+      .leftJoinAndSelect('groupMembership.santaPizza', 'santaPizza')
+      .leftJoinAndSelect(
+        'santaPizza.receiverMembership',
+        'receiverMembership',
+        'groupUser.id = :userId',
+      )
+      .leftJoinAndSelect('receiverMembership.user', 'receiverUser');
   }
 
   async getGroupById(id: number, user: User): Promise<Group> {

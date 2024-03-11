@@ -7,6 +7,7 @@ import { MembershipRepository } from './membership.repository';
 import { MembershipService } from './membership.service';
 import { AuthModule } from '../auth/auth.module';
 import { GroupRepository } from '../group/group.repository';
+import { PizzaRepository } from '../pizza/pizza.repository';
 import { UserRepository } from '../user/user.repository';
 
 @Module({
@@ -16,6 +17,7 @@ import { UserRepository } from '../user/user.repository';
     MembershipRepository,
     GroupRepository,
     UserRepository,
+    PizzaRepository,
   ],
   controllers: [MembershipController],
 })
