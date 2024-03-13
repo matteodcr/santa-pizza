@@ -1,7 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
-import { PizzaDto } from './dto/pizza.dto';
-import { PublicPizzaDto } from './dto/public-pizza.dto';
 import { UpdatePizzaStatusDto } from './dto/update-pizza-status.dto';
 import { PizzaStatus } from './pizza-status.enum';
 import { Pizza } from './pizza.entity';
@@ -20,44 +18,6 @@ export class PizzaService {
     private readonly membershipRepository: MembershipRepository,
     private readonly groupRepository: GroupRepository,
   ) {}
-
-  async createPizza(pizzaDto: PizzaDto, user: User): Promise<PublicPizzaDto> {
-    const pizza = new Pizza();
-    pizza.group = await this.groupRepository.getGroupById(
-      pizzaDto.groupId,
-      user,
-    );
-    const santa = await this.userRepository.getUser(pizzaDto.santa);
-    const receiver = await this.userRepository.getUser(pizzaDto.receiver);
-
-    // TODO: Directly get them from one request instead of mutliplying useless requests
-    pizza.santaMembership = await this.membershipRepository.getMembership(
-      santa,
-      pizza.group,
-    );
-    pizza.receiverMembership = await this.membershipRepository.getMembership(
-      receiver,
-      pizza.group,
-    );
-
-    if (await this.pizzaRepository.isUserReceiverInGroup(santa, pizza.group)) {
-      throw new NotFoundException(
-        `${santa.username} is already receiver in this group`,
-      );
-    }
-    if (await this.pizzaRepository.isUserSantaInGroup(receiver, pizza.group)) {
-      throw new NotFoundException(
-        `${receiver.username} is already santa in this group`,
-      );
-    }
-
-    pizza.status = PizzaStatus.OPEN;
-
-    await this.pizzaRepository.save(pizza);
-    this.logger.debug(`Created Pizza ${pizza.id}`);
-
-    return new PublicPizzaDto(pizza);
-  }
 
   async deletePizza(id: number, user: User): Promise<void> {
     const pizza = await this.pizzaRepository.getPizzaById(id, user);

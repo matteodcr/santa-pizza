@@ -1,11 +1,9 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   Patch,
-  Post,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -18,7 +16,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { PizzaDto } from './dto/pizza.dto';
 import { PublicPizzaDto } from './dto/public-pizza.dto';
 import { UpdatePizzaStatusDto } from './dto/update-pizza-status.dto';
 import { PizzaService } from './pizza.service';
@@ -32,37 +29,7 @@ import { User } from '../user/user.entity';
 @UsePipes(ValidationPipe)
 export class PizzaController {
   constructor(private readonly pizzaService: PizzaService) {}
-  @ApiOperation({
-    summary: 'Creates a new pizza',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'The pizza has been successfully created.',
-    type: PublicPizzaDto,
-  })
-  @Post()
-  createPizza(
-    @Body() createPizzaDto: PizzaDto,
-    @GetUser() user: User,
-  ): Promise<PublicPizzaDto> {
-    return this.pizzaService.createPizza(createPizzaDto, user);
-  }
 
-  @ApiOperation({
-    summary: 'Deletes a pizza',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The pizza has been successfully deleted.',
-  })
-  @ApiResponse({ status: 404, description: 'Pizza not found.' })
-  @Delete(':id')
-  async deletePizza(
-    @Param('id') id: number,
-    @GetUser() user: User,
-  ): Promise<void> {
-    return await this.pizzaService.deletePizza(id, user);
-  }
   @ApiOperation({
     summary: 'Get all pizzas',
   })
