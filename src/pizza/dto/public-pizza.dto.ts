@@ -19,12 +19,12 @@ export class PublicPizzaDto {
   @ApiProperty({
     type: PublicUserDto,
   })
-  santa: PublicMembershipDto;
+  santaMembership: PublicMembershipDto;
 
   @ApiProperty({
     type: PublicUserDto,
   })
-  receiver: PublicMembershipDto;
+  receiverMembership?: PublicMembershipDto;
 
   @ApiProperty({
     example: 'ASSOCIATED',
@@ -35,8 +35,12 @@ export class PublicPizzaDto {
   constructor(pizza: Pizza) {
     this.id = pizza.id;
     this.groupId = pizza.group.id;
-    this.santa = new PublicMembershipDto(pizza.santaMembership);
-    this.receiver = new PublicMembershipDto(pizza.receiverMembership);
+    this.santaMembership = new PublicMembershipDto(pizza.santaMembership);
+    if (pizza.receiverMembership) {
+      this.receiverMembership = new PublicMembershipDto(
+        pizza.receiverMembership,
+      );
+    }
     this.status = pizza.status;
   }
 }

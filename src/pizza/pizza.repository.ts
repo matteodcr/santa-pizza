@@ -20,13 +20,11 @@ export class PizzaRepository extends Repository<Pizza> {
     try {
       pizzas = await this.createQueryBuilder('pizza')
         .leftJoinAndSelect('pizza.group', 'group')
-        .leftJoinAndSelect('group.memberships', 'membership')
-        .leftJoinAndSelect('membership.user', 'user')
-        .leftJoinAndSelect('pizza.santa', 'santa')
-        .leftJoinAndSelect('pizza.receiver', 'receiver')
-        .addSelect('user.username')
-        .addSelect('user.id')
-        .where('membership.user = :userId', { userId: user.id })
+        .leftJoinAndSelect('pizza.santaMembership', 'santa')
+        .leftJoinAndSelect('pizza.receiverMembership', 'receiver')
+        .leftJoinAndSelect('santa.user', 'santaUser')
+        .leftJoinAndSelect('receiver.user', 'receiverUser')
+        .where('santaUser.id = :userId', { userId: user.id })
         .getMany();
     } catch (e) {
       throw new InternalServerErrorException();
@@ -74,16 +72,7 @@ export class PizzaRepository extends Repository<Pizza> {
   async getPizzaById(id: number, user: User): Promise<Pizza | undefined> {
     let pizza: Pizza;
     try {
-      pizza = await this.createQueryBuilder('pizza')
-        .leftJoinAndSelect('pizza.santa', 'santa')
-        .leftJoinAndSelect('pizza.receiver', 'receiver')
-        .leftJoinAndSelect('pizza.group', 'group')
-        .leftJoinAndSelect('group.memberships', 'groupMemberships')
-        .where('pizza.id = :id', { id })
-        .andWhere('(pizza.santaId = :userId OR pizza.receiverId = :userId)', {
-          userId: user.id,
-        })
-        .getOne();
+      pizza = await this.findOneBy({ id: id });
     } catch (e) {
       throw new InternalServerErrorException();
     }

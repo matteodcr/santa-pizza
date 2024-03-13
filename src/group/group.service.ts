@@ -126,10 +126,14 @@ export class GroupService {
     }
     await this.groupRepository.manager.transaction(
       async (transactionalEntityManager) => {
-        for (const membership of group.memberships) {
-          await transactionalEntityManager.remove(membership);
-        }
-        await transactionalEntityManager.remove(group);
+        await transactionalEntityManager.delete('Pizza', {
+          group: { id: group.id },
+        });
+        await transactionalEntityManager.delete('Membership', {
+          group: { id: group.id },
+        });
+
+        await transactionalEntityManager.delete(Group, group.id);
       },
     );
     this.logger.debug(`Deleted group ${id} by user ${user.username}`);
@@ -215,20 +219,25 @@ export class GroupService {
     await this.groupRepository.manager.transaction(
       async (transactionalEntityManager) => {
         const assignedPizzas: Pizza[] = [];
-        for (const member of members) {
-          const availablePizza = await this.getAvailablePizza(
-            group,
-            assignedPizzas,
-            member,
-          );
+        if (members.length >= 2) {
+          for (const member of members) {
+            const availablePizza = await this.getAvailablePizza(
+              group,
+              assignedPizzas,
+              member,
+            );
 
-          availablePizza.receiverMembership = member;
-          availablePizza.status = PizzaStatus.ASSOCIATED;
-          assignedPizzas.push(availablePizza);
-          await transactionalEntityManager.save(availablePizza);
+            availablePizza.receiverMembership = member;
+            availablePizza.status = PizzaStatus.ASSOCIATED;
+            assignedPizzas.push(availablePizza);
+
+            await transactionalEntityManager.save(availablePizza);
+          }
+          group.status = GroupStatus.ASSOCIATED;
+          await transactionalEntityManager.save(group);
+        } else {
+          this.logger.verbose('Not enough members to associate pizzas');
         }
-        group.status = GroupStatus.ASSOCIATED;
-        await transactionalEntityManager.save(group);
       },
     );
   }
@@ -258,7 +267,7 @@ export class GroupService {
     const currentDate = new Date();
     const allGroups = await this.groupRepository.find();
     for (const group of allGroups) {
-      if (currentDate >= group.dueDate && group.status === GroupStatus.OPEN) {
+      if (group.status === GroupStatus.OPEN && group.dueDate < currentDate) {
         this.logger.debug(`Associating ${group.id}`);
         await this.associatePizzas(group);
       }

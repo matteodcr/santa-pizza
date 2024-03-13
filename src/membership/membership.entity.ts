@@ -1,4 +1,3 @@
-// membership.entity.ts
 import {
   BaseEntity,
   Column,
@@ -22,7 +21,7 @@ export class Membership extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.memberships)
+  @ManyToOne(() => User, (user) => user.memberships, { eager: true })
   user: User;
 
   @ManyToOne(() => Group, (group) => group.memberships)
