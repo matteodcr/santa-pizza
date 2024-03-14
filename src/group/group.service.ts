@@ -5,7 +5,6 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
 
 import { CreateGroupDto } from './dto/create-group.dto';
 import { GetGroupFilterDto } from './dto/get-group-filter.dto';
@@ -259,18 +258,5 @@ export class GroupService {
     }
 
     return availablePizzas[Math.floor(Math.random() * availablePizzas.length)];
-  }
-
-  @Cron('*/30 * * * * *')
-  async checkGroups() {
-    this.logger.verbose(`Associating pizzas`);
-    const currentDate = new Date();
-    const allGroups = await this.groupRepository.find();
-    for (const group of allGroups) {
-      if (group.status === GroupStatus.OPEN && group.dueDate < currentDate) {
-        this.logger.debug(`Associating ${group.id}`);
-        await this.associatePizzas(group);
-      }
-    }
   }
 }

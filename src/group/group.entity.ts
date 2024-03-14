@@ -25,7 +25,7 @@ export class Group extends BaseEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'date' })
   dueDate: Date;
 
   @Column()

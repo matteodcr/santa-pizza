@@ -24,7 +24,7 @@ export class CreateGroupDto {
   description: string;
 
   @ApiProperty({
-    example: `${new Date().toISOString()}`,
+    example: `${new Date()}`,
     required: true,
   })
   @IsOptional()
