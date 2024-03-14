@@ -1,9 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 
 import { ChangeRoleDto } from './dto/change-role.dto';
 import { JoinRemoveGroupDto } from './dto/join-remove-group.dto';
@@ -40,13 +35,13 @@ export class MembershipService {
     );
 
     if (!group.isAdmin(user.username)) {
-      throw new UnauthorizedException(
+      throw new ForbiddenException(
         'You must be an admin of the group to add members',
       );
     }
 
     if (await this.membershipRepository.isMemberOf(destUser, group)) {
-      throw new UnauthorizedException(
+      throw new ForbiddenException(
         'This user is already a member of this group',
       );
     }

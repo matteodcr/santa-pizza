@@ -19,6 +19,9 @@ export class UserRepository extends Repository<User> {
     } catch (e) {
       throw new InternalServerErrorException();
     }
+    if (!user) {
+      throw new NotFoundException(`User ${username} not found`);
+    }
     return user;
   }
 
