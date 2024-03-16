@@ -22,6 +22,8 @@ export class MembershipRepository extends Repository<Membership> {
         .andWhere('membership.groupId = :groupId', { groupId: group.id })
         .leftJoinAndSelect('membership.santaPizza', 'santaPizza')
         .leftJoinAndSelect('membership.receiverPizza', 'receiverPizza')
+        .leftJoinAndSelect('membership.user', 'user')
+        .leftJoinAndSelect('membership.group', 'group')
         .getOne();
 
       return membership || null;
