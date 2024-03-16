@@ -26,6 +26,9 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   description: string;
 
+  @Column({ nullable: true })
+  avatarUrl: string;
+
   @Column('jsonb', { nullable: true })
   allergies: string[];
 

@@ -27,6 +27,12 @@ export class PublicUserDto {
   description: string;
 
   @ApiProperty({
+    example: 'https://www.example.com/avatar.png',
+    type: String,
+  })
+  avatarUrl: string;
+
+  @ApiProperty({
     example: ['gluten', 'lactose'],
     type: String,
     isArray: true,
@@ -38,6 +44,7 @@ export class PublicUserDto {
     this.username = user.username;
     this.description = user.description;
     this.name = user.name;
+    this.avatarUrl = user.avatarUrl;
     this.allergies = user.allergies;
   }
 }

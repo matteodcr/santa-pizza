@@ -1,4 +1,6 @@
 // user.service.ts
+import * as fs from 'fs';
+
 import { Injectable, Logger } from '@nestjs/common';
 
 import { EditUserDto } from './dto/edit-user.dto';
@@ -33,5 +35,12 @@ export class UserService {
     this.logger.debug(`User ${user.username} updated`);
 
     return user;
+  }
+  public async setAvatar(user: User, avatarPath: string) {
+    console.log(avatarPath);
+    if (fs.existsSync(user.avatarUrl)) {
+      fs.unlinkSync(user.avatarUrl);
+    }
+    await this.userRepository.update(user.id, { avatarUrl: avatarPath });
   }
 }
