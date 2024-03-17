@@ -100,6 +100,7 @@ export class UserController {
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addMaxSizeValidator({ maxSize: 10000000 })
+        .addFileTypeValidator({ fileType: 'image/jpeg' })
         .build({
           errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
         }),

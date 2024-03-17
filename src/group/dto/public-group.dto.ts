@@ -22,6 +22,12 @@ export class PublicGroupDto {
   description: string;
 
   @ApiProperty({
+    description: 'The background url of the group',
+    example: 'https://example.com/image.jpg',
+  })
+  backgroundUrl: string;
+
+  @ApiProperty({
     description: 'The users in the group',
     isArray: true,
     type: PublicMembershipDto,
@@ -47,6 +53,7 @@ export class PublicGroupDto {
     this.id = group.id;
     this.name = group.name;
     this.description = group.description;
+    this.backgroundUrl = group.backgroundUrl;
     this.memberships = group.memberships.map(
       (membership: Membership) => new PublicMembershipDto(membership),
     );

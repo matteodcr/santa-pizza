@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+
 import {
   ForbiddenException,
   Injectable,
@@ -258,5 +260,28 @@ export class GroupService {
     }
 
     return availablePizzas[Math.floor(Math.random() * availablePizzas.length)];
+  }
+
+  public async setBackground(
+    user: User,
+    groupId: number,
+    backgroundPath: string,
+  ) {
+    const group = await this.groupRepository.getGroupById(groupId, user);
+    const membership = await this.membershipRepository.getMembership(
+      user,
+      group,
+    );
+    if (!membership || membership.role !== GroupRole.ADMIN) {
+      throw new ForbiddenException(
+        'You do not have the right to update the background',
+      );
+    }
+    if (group.backgroundUrl && fs.existsSync(group.backgroundUrl)) {
+      fs.unlinkSync(group.backgroundUrl);
+    }
+    await this.groupRepository.update(groupId, {
+      backgroundUrl: backgroundPath,
+    });
   }
 }

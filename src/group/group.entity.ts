@@ -22,6 +22,9 @@ export class Group extends BaseEntity {
   @Column()
   description: string;
 
+  @Column({ nullable: true })
+  backgroundUrl: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

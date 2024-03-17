@@ -3,22 +3,29 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
+  ParseFilePipeBuilder,
   ParseIntPipe,
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { diskStorage } from 'multer';
+import { v4 as uuidv4 } from 'uuid';
 
 import { CreateGroupDto } from './dto/create-group.dto';
 import { GetGroupFilterDto } from './dto/get-group-filter.dto';
@@ -172,5 +179,39 @@ export class GroupController {
     @GetUser() user: User,
   ): Promise<void> {
     return this.groupService.associatePizzasByUser(id, user);
+  }
+
+  @ApiOperation({
+    summary: 'Uploads a group picture',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The group picture has been successfully uploaded',
+  })
+  @Post('/:id/upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: 'public/group-pictures/',
+        filename: (req, file, cb) => {
+          cb(null, 'gp-' + uuidv4() + '.jpg');
+        },
+      }),
+    }),
+  )
+  async uploadProfilePicture(
+    @GetUser() user: User,
+    @Param('id') id: number,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addMaxSizeValidator({ maxSize: 10000000 })
+        .addFileTypeValidator({ fileType: 'image/jpeg' })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.groupService.setBackground(user, id, file.path);
   }
 }
