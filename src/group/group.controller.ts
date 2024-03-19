@@ -35,6 +35,7 @@ import {
   UpdateGroupDescriptionDto,
   UpdateGroupNameDto,
 } from './dto/update-group.dto';
+import { Group } from './group.entity';
 import { GroupService } from './group.service';
 import { GetUser } from '../auth/get-user-decorator';
 import { User } from '../user/user.entity';
@@ -61,7 +62,9 @@ export class GroupController {
     @Query(ValidationPipe) filterDto: GetGroupFilterDto,
     @GetUser() user: User,
   ): Promise<PublicGroupDto[]> {
-    return this.groupService.getGroups(filterDto, user);
+    return (await this.groupService.getGroups(filterDto, user)).map(
+      (group: Group) => new PublicGroupDto(group),
+    );
   }
 
   @ApiOperation({
@@ -179,6 +182,19 @@ export class GroupController {
     @GetUser() user: User,
   ): Promise<void> {
     return this.groupService.associatePizzasByUser(id, user);
+  }
+
+  @ApiOperation({
+    summary: 'Update a group date by its id',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'The group dueDate has been successfully updated.',
+    type: PublicGroupDto,
+  })
+  @Patch('/:id/close')
+  closeGroup(@Param('id') id: number, @GetUser() user: User): Promise<void> {
+    return this.groupService.closeGroup(id, user);
   }
 
   @ApiOperation({

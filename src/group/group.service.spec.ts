@@ -1,58 +1,87 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { NotFoundException } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 
-import { CreateGroupDto } from './dto/create-group.dto';
+import { GroupStatus } from './group-status.enum';
 import { GroupRepository } from './group.repository';
 import { GroupService } from './group.service';
-import { AuthRepository } from '../auth/auth.repository';
-import { typeOrmConfigTest } from '../config/typeorm.config';
+import { MembershipRepository } from '../membership/membership.repository';
+import { PizzaRepository } from '../pizza/pizza.repository';
+import { User } from '../user/user.entity';
+
+const mockGroupRepository = () => ({
+  getGroups: jest.fn(),
+  getGroupById: jest.fn(),
+  findOne: jest.fn(),
+});
+
+const mockMembershipRepository = () => ({
+  getMemberships: jest.fn(),
+});
+
+const mockPizzaRepository = () => ({
+  getPizzas: jest.fn(),
+});
+
+const mockUser = {
+  id: 1,
+  username: 'TestUser',
+  name: 'Test User',
+  description: 'Test Description',
+  avatarUrl: 'Test Avatar URL',
+  allergies: ['Test Allergy'],
+  memberships: [],
+  auth: null,
+};
 
 describe('GroupService', () => {
-  let groupService: GroupService;
-  let groupRepository: GroupRepository;
-  let userRepository: AuthRepository;
+  let groupService;
+  let groupRepository;
 
-  beforeAll(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        TypeOrmModule.forRoot(typeOrmConfigTest),
-        TypeOrmModule.forFeature([GroupRepository, AuthRepository]),
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      providers: [
+        GroupService,
+        { provide: GroupRepository, useFactory: mockGroupRepository },
+        { provide: MembershipRepository, useFactory: mockMembershipRepository },
+        { provide: PizzaRepository, useFactory: mockPizzaRepository },
       ],
-      providers: [GroupService],
     }).compile();
 
-    groupService = module.get<GroupService>(GroupService);
-    groupRepository = module.get<GroupRepository>(GroupRepository);
-    userRepository = module.get<AuthRepository>(AuthRepository);
+    groupService = module.get(GroupService);
+    groupRepository = module.get(GroupRepository);
   });
 
-  it('should be defined', () => {
-    expect(groupService).toBeDefined();
-  });
-
-  it('should create a new group and save it to the database', async () => {
-    // Données fictives pour le test
-    const user = new user();
-    user.id = 1;
-    user.username = 'testuser';
-
-    const createGroupDto: CreateGroupDto = {
-      name: 'Test Group',
-      description: 'This is a test group',
-    };
-
-    // Appel de la méthode createGroup
-    const group = await groupService.createGroup(createGroupDto, user);
-
-    // Récupérez le groupe depuis la base de données
-    const groupFromDatabase = await groupRepository.findOne({
-      where: { id: group.id },
+  describe('getGroups', () => {
+    it('gets all groups from the repository', async () => {
+      groupRepository.getGroups.mockResolvedValue('someValue');
+      const result = await groupService.getGroups({}, mockUser as User);
+      expect(result).toEqual('someValue');
     });
+  });
 
-    // Vérification si le groupe a été sauvegardé dans la base de données
-    expect(groupFromDatabase).toBeDefined();
-    expect(groupFromDatabase.name).toBe(createGroupDto.name);
-    expect(groupFromDatabase.description).toBe(createGroupDto.description);
-    // Vérifiez d'autres propriétés du groupe si nécessaire
+  describe('getGroupById', () => {
+    it('calls groupRepository.getGroupById and returns the result', async () => {
+      const mockGroup = {
+        id: 1,
+        name: 'TestGroup',
+        description: 'Test Description',
+        dueDate: new Date(),
+        createdAt: new Date(),
+        memberships: null,
+        status: GroupStatus.OPEN,
+        backgroundUrl: 'Test Background URL',
+        pizzas: null,
+        isAdmin: jest.fn(),
+      };
+      groupRepository.getGroupById.mockResolvedValue(mockGroup);
+      const result = await groupService.getGroupById(1, mockUser as User);
+      expect(result).toEqual(mockGroup);
+    });
+    it('calls groupRepository.getGroupById and handles an error', async () => {
+      groupRepository.findOne.mockResolvedValue(null);
+      await expect(
+        groupService.getGroupById(1, mockUser as User),
+      ).rejects.toThrow(NotFoundException);
+    });
   });
 });

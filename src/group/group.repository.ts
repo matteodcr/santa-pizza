@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 
+import { GetGroupFilterDto } from './dto/get-group-filter.dto';
 import { Group } from './group.entity';
 import { User } from '../user/user.entity';
 
@@ -13,7 +14,8 @@ export class GroupRepository extends Repository<Group> {
   constructor(private dataSource: DataSource) {
     super(Group, dataSource.createEntityManager());
   }
-  getGroups(user: User) {
+
+  baseQuery(user: User) {
     return this.createQueryBuilder('group')
       .innerJoin('group.memberships', 'membership')
       .innerJoin('membership.user', 'user')
@@ -29,10 +31,29 @@ export class GroupRepository extends Repository<Group> {
       .leftJoinAndSelect('receiverMembership.user', 'receiverUser');
   }
 
+  async getGroups(filterDto: GetGroupFilterDto, user: User): Promise<Group[]> {
+    const { search } = filterDto;
+
+    let query = this.baseQuery(user);
+
+    if (search) {
+      query = query.andWhere(
+        'group.name LIKE :searchQuery OR group.description LIKE :searchQuery',
+        { searchQuery: `%${search}%` },
+      );
+    }
+
+    try {
+      return await query.getMany();
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
   async getGroupById(id: number, user: User): Promise<Group> {
     let group: Group;
     try {
-      group = await this.getGroups(user)
+      group = await this.baseQuery(user)
         .andWhere('group.id = :groupId', { groupId: id })
         .getOne();
     } catch (e) {

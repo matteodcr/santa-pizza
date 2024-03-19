@@ -36,30 +36,10 @@ export class GroupService {
     private pizzaRepository: PizzaRepository,
   ) {}
 
-  async getGroups(
-    filterDto: GetGroupFilterDto,
-    user: User,
-  ): Promise<PublicGroupDto[]> {
-    const { search } = filterDto;
-
-    let query = this.groupRepository.getGroups(user);
-
-    if (search) {
-      query = query.andWhere(
-        'group.name LIKE :searchQuery OR group.description LIKE :searchQuery',
-        { searchQuery: `%${search}%` },
-      );
-    }
-
-    try {
-      const groups = await query.getMany();
-      this.logger.verbose(
-        `Got groups ${groups.map((group) => group.id + ',')} `,
-      );
-      return groups.map((group: Group) => new PublicGroupDto(group));
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
+  async getGroups(filterDto: GetGroupFilterDto, user: User): Promise<Group[]> {
+    const groups = await this.groupRepository.getGroups(filterDto, user);
+    this.logger.verbose(`Got groups ${groups.toString()} `);
+    return groups;
   }
 
   async getGroupById(id: number, user: User): Promise<Group> {
@@ -212,7 +192,6 @@ export class GroupService {
 
   async associatePizzas(group: Group): Promise<void> {
     const members = await this.membershipRepository.getAllMemberships(group);
-
     const membersCopy = [...members];
 
     shuffleArray(membersCopy);
@@ -227,6 +206,7 @@ export class GroupService {
               assignedPizzas,
               member,
             );
+            console.log('availablePizza', availablePizza);
 
             availablePizza.receiverMembership = member;
             availablePizza.status = PizzaStatus.ASSOCIATED;
@@ -260,6 +240,29 @@ export class GroupService {
     }
 
     return availablePizzas[Math.floor(Math.random() * availablePizzas.length)];
+  }
+
+  async closeGroup(groupId: number, user: User): Promise<void> {
+    const group = await this.groupRepository.getGroupById(groupId, user);
+    const membership = await this.membershipRepository.getMembership(
+      user,
+      group,
+    );
+
+    if (!membership || membership.role !== GroupRole.ADMIN) {
+      throw new ForbiddenException(
+        'You do not have the right to close the group',
+      );
+    }
+
+    if (
+      group.status === GroupStatus.ARCHIVED ||
+      group.status === GroupStatus.OPEN
+    ) {
+      throw new ForbiddenException('The group cannot be closed');
+    }
+    group.status = GroupStatus.ARCHIVED;
+    await this.groupRepository.save(group);
   }
 
   public async setBackground(

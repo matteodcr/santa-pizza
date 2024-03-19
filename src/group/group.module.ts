@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -11,7 +12,7 @@ import { MembershipRepository } from '../membership/membership.repository';
 import { PizzaRepository } from '../pizza/pizza.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Group]), AuthModule],
+  imports: [TypeOrmModule.forFeature([Group]), AuthModule, HttpModule],
   controllers: [GroupController],
   providers: [
     GroupService,
