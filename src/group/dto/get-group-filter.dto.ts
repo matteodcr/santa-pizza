@@ -9,5 +9,5 @@ export class GetGroupFilterDto {
   })
   @IsOptional()
   @IsNotEmpty()
-  search: string;
+  search?: string;
 }
