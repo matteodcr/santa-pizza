@@ -35,8 +35,6 @@ export class Pizza extends BaseEntity {
   @JoinColumn()
   receiverMembership: Membership;
 
-  receiverMembershipId: number;
-
   @Column({ nullable: true })
   description: string;
 
