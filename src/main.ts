@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { TYPEORM_MODULE_OPTIONS } from '@nestjs/typeorm/dist/typeorm.constants';
 
 import { AppModule } from './app.module';
+import * as packageJson from '../package.json';
 
 async function bootstrap() {
   const logger = new Logger('bootstrap');
@@ -15,8 +16,8 @@ async function bootstrap() {
   // Swagger
   const configSwagger = new DocumentBuilder()
     .setTitle('Pizza Party API')
-    .setDescription('The Pizza Party API description')
-    .setVersion('1.0')
+    .setVersion(packageJson.version)
+    .setLicense('GPL-3.0', 'https://www.gnu.org/licenses/gpl-3.0.html')
     .build();
   const document = SwaggerModule.createDocument(app, configSwagger);
   SwaggerModule.setup('api', app, document);
