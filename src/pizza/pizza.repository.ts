@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 
 import { PizzaStatus } from './pizza-status.enum';
@@ -7,6 +11,7 @@ import { User } from '../user/user.entity';
 
 @Injectable()
 export class PizzaRepository extends Repository<Pizza> {
+  private logger = new Logger('PizzaRepository');
   constructor(private dataSource: DataSource) {
     super(Pizza, dataSource.createEntityManager());
   }
@@ -23,6 +28,9 @@ export class PizzaRepository extends Repository<Pizza> {
         .andWhere('santaMembership.userId != :userId', { userId: member.id })
         .getMany();
     } catch (e) {
+      this.logger.error(
+        `Failed to get available pizzas for user "${member.username}". Data: ${e.stack}`,
+      );
       throw new InternalServerErrorException();
     }
 

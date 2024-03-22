@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 
 import { ChangeRoleDto } from './dto/change-role.dto';
 import { JoinRemoveGroupDto } from './dto/join-remove-group.dto';
@@ -25,48 +30,58 @@ export class MembershipService {
     user: User,
     joinRemoveGroupDto: JoinRemoveGroupDto,
   ): Promise<PublicGroupDto> {
-    const group = await this.groupRepository.getGroupById(
-      joinRemoveGroupDto.groupId,
-      user,
-    );
-
-    const destUser = await this.userRepository.getUser(
-      joinRemoveGroupDto.username,
-    );
-
-    if (!group.isAdmin(user.username)) {
-      throw new ForbiddenException(
-        'You must be an admin of the group to add members',
+    try {
+      const group = await this.groupRepository.getGroupById(
+        joinRemoveGroupDto.groupId,
+        user,
       );
-    }
 
-    if (await this.membershipRepository.isMemberOf(destUser, group)) {
-      throw new ForbiddenException(
-        'This user is already a member of this group',
+      const destUser = await this.userRepository.getUser(
+        joinRemoveGroupDto.username,
       );
+
+      if (!group.isAdmin(user.username)) {
+        this.logger.warn(`User ${user.username} is not an admin of the group`);
+        throw new ForbiddenException(
+          'You must be an admin of the group to add members',
+        );
+      }
+
+      if (await this.membershipRepository.isMemberOf(destUser, group)) {
+        this.logger.warn(
+          `User ${destUser.username} is already a member of the group`,
+        );
+        throw new ForbiddenException(
+          'This user is already a member of this group',
+        );
+      }
+
+      const newMembership = new Membership();
+      newMembership.user = destUser;
+      newMembership.groupId = joinRemoveGroupDto.groupId;
+      newMembership.role = GroupRole.USER;
+      group.memberships.push(newMembership);
+
+      const pizza = new Pizza();
+      pizza.santaMembership = newMembership;
+      pizza.group = group;
+      pizza.status = PizzaStatus.OPEN;
+
+      await this.groupRepository.manager.transaction(
+        async (transactionalEntityManager) => {
+          await transactionalEntityManager.save(newMembership);
+          await transactionalEntityManager.save(pizza);
+        },
+      );
+
+      this.logger.verbose(
+        `User ${destUser.username} added to group ${group.id}`,
+      );
+      return new PublicGroupDto(group);
+    } catch (error) {
+      this.logger.error('Transaction failed:', error.message);
+      throw new InternalServerErrorException('Failed to add user to group');
     }
-
-    const newMembership = new Membership();
-    newMembership.user = destUser;
-    newMembership.groupId = joinRemoveGroupDto.groupId;
-    newMembership.role = GroupRole.USER;
-    group.memberships.push(newMembership);
-
-    const pizza = new Pizza();
-    pizza.santaMembership = newMembership;
-    pizza.group = group;
-    pizza.status = PizzaStatus.OPEN;
-
-    await this.groupRepository.manager.transaction(
-      async (transactionalEntityManager) => {
-        await transactionalEntityManager.save(newMembership);
-        await transactionalEntityManager.save(pizza);
-      },
-    );
-
-    this.logger.debug(`User ${destUser.username} added to group ${group.id}`);
-
-    return new PublicGroupDto(group);
   }
 
   async removeUserFromGroup(
@@ -77,7 +92,6 @@ export class MembershipService {
       joinRemoveGroupDto.groupId,
       user,
     );
-
     const destUser = await this.userRepository.getUser(
       joinRemoveGroupDto.username,
     );
@@ -88,7 +102,7 @@ export class MembershipService {
       group.isAdmin(joinRemoveGroupDto.username)
     ) {
       throw new ForbiddenException(
-        'You do not have the right to remove an user in the group ${id}',
+        'You do not have the right to remove a user from the group ${id}',
       );
     }
 
@@ -96,9 +110,24 @@ export class MembershipService {
       destUser,
       group,
     );
-    await this.pizzaRepository.remove(membership.santaPizza);
-    await this.membershipRepository.remove(membership);
-    this.logger.debug(
+
+    await this.groupRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          await transactionalEntityManager.remove(membership.santaPizza);
+          await transactionalEntityManager.remove(membership);
+        } catch (e) {
+          this.logger.error(
+            `Failed to remove user ${user.username} from group ${group.id}: ${e.stack}`,
+          );
+          throw new InternalServerErrorException(
+            `Failed to remove user ${user.username} from group ${group.id}`,
+          );
+        }
+      },
+    );
+
+    this.logger.verbose(
       `User ${destUser.username} removed from group ${group.id}`,
     );
 
@@ -121,13 +150,20 @@ export class MembershipService {
     );
 
     if (!group.isAdmin(user.username) || membership.role === GroupRole.ADMIN) {
+      this.logger.debug(`User ${user.username} is not an admin of the group`);
       throw new ForbiddenException(
         `You do not have the right to change the role of an user in the group ${changeRoleDto.groupId}`,
       );
     }
     membership.role = changeRoleDto.role;
-    await membership.save();
-
+    try {
+      await membership.save();
+    } catch (e) {
+      this.logger.error(`Failed to change role: ${e.message}`);
+    }
+    this.logger.verbose(
+      `User ${userToModify.username} role in ${group.id} changed to ${changeRoleDto.role}`,
+    );
     return membership;
   }
 }

@@ -5,7 +5,6 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  NotFoundException,
 } from '@nestjs/common';
 
 import { CreateGroupDto } from './dto/create-group.dto';
@@ -34,16 +33,14 @@ export class GroupService {
 
   async getGroups(filterDto: GetGroupFilterDto, user: User): Promise<Group[]> {
     const groups = await this.groupRepository.getGroups(filterDto, user);
-    this.logger.verbose(`Got groups ${groups.toString()} `);
+    this.logger.verbose(
+      `Got groups [${groups.map((group) => group.id).join(', ')}]`,
+    );
     return groups;
   }
 
   async getGroupById(id: number, user: User): Promise<Group> {
     const group = await this.groupRepository.getGroupById(id, user);
-
-    if (!group) {
-      throw new NotFoundException(`Group with ID ${id} not found`);
-    }
     this.logger.verbose(`Got group ${group.id}`);
     return group;
   }
@@ -84,36 +81,40 @@ export class GroupService {
       throw new InternalServerErrorException('Failed to create group.');
     }
 
-    this.logger.debug(`Created group ${group.id} for user ${user.username}`);
-
+    this.logger.verbose(`Group ${group.id} created by user ${user.username}`);
     return new PublicGroupDto(group);
   }
 
   async deleteGroup(id: number, user: User) {
-    const group = await this.getGroupById(id, user);
-
-    if (!group || !(group.memberships && group.memberships.length > 0)) {
-      throw new NotFoundException(`Impossible to delete the group ${id}`);
-    }
+    const group = await this.groupRepository.getGroupById(id, user);
 
     if (!group.isAdmin(user.username)) {
       throw new ForbiddenException(
         'You do not have the right to delete the group ${id}',
       );
     }
+
     await this.groupRepository.manager.transaction(
       async (transactionalEntityManager) => {
-        await transactionalEntityManager.delete('Pizza', {
-          group: { id: group.id },
-        });
-        await transactionalEntityManager.delete('Membership', {
-          group: { id: group.id },
-        });
+        try {
+          await transactionalEntityManager.delete('Pizza', {
+            group: { id: group.id },
+          });
+          await transactionalEntityManager.delete('Membership', {
+            group: { id: group.id },
+          });
 
-        await transactionalEntityManager.delete(Group, group.id);
+          await transactionalEntityManager.delete(Group, group.id);
+        } catch (e) {
+          this.logger.error(`Failed to delete group ${id}: ${e.message}`);
+          throw new InternalServerErrorException(
+            `Failed to delete group ${id}.`,
+          );
+        }
       },
     );
-    this.logger.debug(`Deleted group ${id} by user ${user.username}`);
+
+    this.logger.verbose(`Group ${id} deleted  by user ${user.username}`);
   }
 
   async updateGroup(id: number, user: User, updateGroupDto: UpdateGroupDto) {
@@ -121,6 +122,9 @@ export class GroupService {
     const group = await this.getGroupById(id, user);
 
     if (!group.isAdmin(user.username)) {
+      this.logger.debug(
+        `User ${user.username} does not have the right to update the group`,
+      );
       throw new ForbiddenException(
         'You do not have the right to delete the group ${id}',
       );
@@ -134,20 +138,29 @@ export class GroupService {
     if (group.dueDate) {
       group.dueDate = dueDate;
     }
-    await group.save();
-    this.logger.debug(`Updated group name ${id} by user ${user.username}`);
+    try {
+      await group.save();
+    } catch (e) {
+      this.logger.error(`Failed to update group ${id}: ${e.stack}`);
+      throw new InternalServerErrorException(`Failed to update group ${id}`);
+    }
+    this.logger.verbose(`Group ${id} updated by user ${user.username}`);
     return new PublicGroupDto(group);
   }
 
   async associatePizzasByUser(id: number, user: User) {
     const group = await this.groupRepository.getGroupById(id, user);
     if (group.isAdmin(user.username)) {
-      return await this.associatePizzas(group);
+      await this.associatePizzas(group);
     } else {
+      this.logger.debug(
+        `User ${user.id} does not have the right to associate pizzas`,
+      );
       throw new ForbiddenException(
         'You do not have the right to associate pizzas',
       );
     }
+    this.logger.verbose(`Pizzas associated in group ${id} by user ${user.id}`);
   }
 
   async associatePizzas(group: Group): Promise<void> {
@@ -172,12 +185,30 @@ export class GroupService {
             availablePizza.status = PizzaStatus.ASSOCIATED;
             assignedPizzas.push(availablePizza);
 
-            await transactionalEntityManager.save(availablePizza);
+            try {
+              await transactionalEntityManager.save(availablePizza);
+            } catch (e) {
+              this.logger.error(
+                `Failed to update pizza ${availablePizza.id} to associated status: ${e.stack}`,
+              );
+              throw new InternalServerErrorException(
+                `Failed to update pizza ${availablePizza.id} to associated status`,
+              );
+            }
           }
           group.status = GroupStatus.ASSOCIATED;
-          await transactionalEntityManager.save(group);
+          try {
+            await transactionalEntityManager.save(group);
+          } catch (e) {
+            this.logger.error(
+              `Failed to update group ${group.id} to associated status: ${e.stack}`,
+            );
+            throw new InternalServerErrorException(
+              `Failed to update group ${group.id} to associated status`,
+            );
+          }
         } else {
-          this.logger.verbose('Not enough members to associate pizzas');
+          this.logger.debug('Not enough members to associate pizzas');
         }
       },
     );
@@ -194,6 +225,9 @@ export class GroupService {
       );
 
     if (availablePizzas.length === 0) {
+      this.logger.debug(
+        `Not enough available pizzas to assign in group ${group.id}`,
+      );
       throw new InternalServerErrorException(
         'Not enough available pizzas to assign.',
       );
@@ -219,10 +253,19 @@ export class GroupService {
       group.status === GroupStatus.ARCHIVED ||
       group.status === GroupStatus.OPEN
     ) {
+      this.logger.debug(`Group ${group.id} cannot be closed`);
       throw new ForbiddenException('The group cannot be closed');
     }
     group.status = GroupStatus.ARCHIVED;
-    await this.groupRepository.save(group);
+    try {
+      await this.groupRepository.save(group);
+    } catch (e) {
+      this.logger.error(`Failed to close group ${groupId}: ${e.stack}`);
+      throw new InternalServerErrorException(
+        `Failed to close group ${groupId}`,
+      );
+    }
+    this.logger.verbose(`Group ${groupId} closed by user ${user.username}`);
   }
 
   public async setBackground(
@@ -236,6 +279,9 @@ export class GroupService {
       group,
     );
     if (!membership || membership.role !== GroupRole.ADMIN) {
+      this.logger.debug(
+        `User ${user.username} does not have the right to update the background`,
+      );
       throw new ForbiddenException(
         'You do not have the right to update the background',
       );
@@ -243,8 +289,20 @@ export class GroupService {
     if (group.backgroundUrl && fs.existsSync(group.backgroundUrl)) {
       fs.unlinkSync(group.backgroundUrl);
     }
-    await this.groupRepository.update(groupId, {
-      backgroundUrl: backgroundPath,
-    });
+    try {
+      await this.groupRepository.update(groupId, {
+        backgroundUrl: backgroundPath,
+      });
+    } catch (e) {
+      this.logger.error(
+        `Failed to update background of group ${groupId}: ${e.stack}`,
+      );
+      throw new InternalServerErrorException(
+        `Failed to update background of group ${groupId}`,
+      );
+    }
+    this.logger.verbose(
+      `Background of group ${groupId} updated by user ${user.username}`,
+    );
   }
 }

@@ -19,7 +19,6 @@ import { UserModule } from './user/user.module';
       envFilePath: [`.env.${process.env.NODE_ENV}`, '.env'],
     }),
     TypeOrmModule.forRootAsync({
-      //jdbc:postgresql://localhost:5432/pizza
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: configService.get<any>('DB_TYPE'),
@@ -28,7 +27,7 @@ import { UserModule } from './user/user.module';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        synchronize: configService.get<boolean>('DB_SYNCHRONIZE'),
+        synchronize: configService.get<boolean>('SYNCHRONIZE'),
         autoLoadEntities: true,
       }),
     }),

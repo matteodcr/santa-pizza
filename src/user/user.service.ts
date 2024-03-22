@@ -1,6 +1,10 @@
 import * as fs from 'fs';
 
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 
 import { EditUserDto } from './dto/edit-user.dto';
 import { User } from './user.entity';
@@ -12,12 +16,10 @@ export class UserService {
 
   constructor(private userRepository: UserRepository) {}
 
-  async getUser(user: User): Promise<User> {
-    return this.userRepository.getUser(user.username);
-  }
-
-  async getUserByName(username: string): Promise<User> {
-    return this.userRepository.getUserByName(username);
+  async getUser(username: string): Promise<User> {
+    const retrievedUser = await this.userRepository.getUser(username);
+    this.logger.verbose(`Got user ${username}`);
+    return retrievedUser;
   }
 
   async updateUser(editUserDto: EditUserDto, user: User): Promise<User> {
@@ -30,8 +32,15 @@ export class UserService {
     if (editUserDto.allergies) {
       user.allergies = editUserDto.allergies;
     }
-    await user.save();
-    this.logger.debug(`User ${user.username} updated`);
+    try {
+      await user.save();
+    } catch (e) {
+      this.logger.error(
+        `Failed to update user ${user.username}. Data: ${e.stack}`,
+      );
+      throw new InternalServerErrorException();
+    }
+    this.logger.verbose(`User ${user.username} updated`);
 
     return user;
   }
@@ -39,6 +48,14 @@ export class UserService {
     if (user.avatarUrl && fs.existsSync(user.avatarUrl)) {
       fs.unlinkSync(user.avatarUrl);
     }
-    await this.userRepository.update(user.id, { avatarUrl: avatarPath });
+    try {
+      await this.userRepository.update(user.id, { avatarUrl: avatarPath });
+    } catch (e) {
+      this.logger.error(
+        `Failed to update user ${user.username} avatar. Data: ${e.stack}`,
+      );
+      throw new InternalServerErrorException();
+    }
+    this.logger.verbose(`User ${user.username} avatar updated`);
   }
 }
