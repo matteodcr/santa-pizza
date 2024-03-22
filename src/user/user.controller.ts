@@ -47,7 +47,7 @@ export class UserController {
   })
   @Get('/me')
   async getUser(@GetUser() user: User): Promise<User> {
-    return this.userService.getUser(user);
+    return this.userService.getUser(user.username);
   }
 
   @ApiOperation({
@@ -59,7 +59,7 @@ export class UserController {
   })
   @Get('/:username')
   async getUserByName(@Param('username') username: string): Promise<any> {
-    return this.userService.getUserByName(username);
+    return this.userService.getUser(username);
   }
 
   @ApiOperation({
