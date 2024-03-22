@@ -11,11 +11,7 @@ import {
 import { CreateGroupDto } from './dto/create-group.dto';
 import { GetGroupFilterDto } from './dto/get-group-filter.dto';
 import { PublicGroupDto } from './dto/public-group.dto';
-import {
-  UpdateGroupDateDto,
-  UpdateGroupDescriptionDto,
-  UpdateGroupNameDto,
-} from './dto/update-group.dto';
+import { UpdateGroupDto } from './dto/update-group.dto';
 import { GroupStatus } from './group-status.enum';
 import { Group } from './group.entity';
 import { GroupRepository } from './group.repository';
@@ -120,12 +116,8 @@ export class GroupService {
     this.logger.debug(`Deleted group ${id} by user ${user.username}`);
   }
 
-  async updateGroupName(
-    id: number,
-    user: User,
-    updateGroupNameDto: UpdateGroupNameDto,
-  ) {
-    const { name } = updateGroupNameDto;
+  async updateGroup(id: number, user: User, updateGroupDto: UpdateGroupDto) {
+    const { name, description, dueDate } = updateGroupDto;
     const group = await this.getGroupById(id, user);
 
     if (!group.isAdmin(user.username)) {
@@ -133,49 +125,17 @@ export class GroupService {
         'You do not have the right to delete the group ${id}',
       );
     }
-    group.name = name;
+    if (group.name) {
+      group.name = name;
+    }
+    if (group.description) {
+      group.description = description;
+    }
+    if (group.dueDate) {
+      group.dueDate = dueDate;
+    }
     await group.save();
     this.logger.debug(`Updated group name ${id} by user ${user.username}`);
-    return new PublicGroupDto(group);
-  }
-
-  async updateGroupDescription(
-    id: number,
-    user: User,
-    updateGroupDescriptionDto: UpdateGroupDescriptionDto,
-  ) {
-    const { description } = updateGroupDescriptionDto;
-    const group = await this.getGroupById(id, user);
-
-    if (!group.isAdmin(user.username)) {
-      throw new ForbiddenException(
-        'You do not have the right to delete the group ${id}',
-      );
-    }
-    group.description = description;
-    await group.save();
-    this.logger.debug(
-      `Updated group description ${id} by user ${user.username}`,
-    );
-    return new PublicGroupDto(group);
-  }
-
-  async updateGroupDate(
-    id: number,
-    user: User,
-    updateGroupDateDto: UpdateGroupDateDto,
-  ) {
-    const { dueDate } = updateGroupDateDto;
-    const group = await this.getGroupById(id, user);
-
-    if (!group.isAdmin(user.username)) {
-      throw new ForbiddenException(
-        'You do not have the right to delete the group ${id}',
-      );
-    }
-    group.dueDate = dueDate;
-    await group.save();
-    this.logger.debug(`Updated group due date ${id} by user ${user.username}`);
     return new PublicGroupDto(group);
   }
 

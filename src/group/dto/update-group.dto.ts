@@ -1,7 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
-export class UpdateGroupNameDto {
+export class UpdateGroupDto {
   @ApiProperty({
     example: 'New Year Party',
     required: false,
@@ -10,10 +15,9 @@ export class UpdateGroupNameDto {
   })
   @IsNotEmpty()
   @IsString()
+  @IsOptional()
   name: string;
-}
 
-export class UpdateGroupDescriptionDto {
   @ApiProperty({
     example: 'It will be a great party!',
     required: true,
@@ -22,10 +26,9 @@ export class UpdateGroupDescriptionDto {
   })
   @IsNotEmpty()
   @IsString()
+  @IsOptional()
   description: string;
-}
 
-export class UpdateGroupDateDto {
   @ApiProperty({
     example: '2021-12-31T23:59:59Z',
     required: true,
@@ -33,5 +36,6 @@ export class UpdateGroupDateDto {
     type: Date,
   })
   @IsDateString()
+  @IsOptional()
   dueDate?: Date;
 }

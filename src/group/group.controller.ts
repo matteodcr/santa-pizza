@@ -30,11 +30,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { GetGroupFilterDto } from './dto/get-group-filter.dto';
 import { PublicGroupDto } from './dto/public-group.dto';
-import {
-  UpdateGroupDateDto,
-  UpdateGroupDescriptionDto,
-  UpdateGroupNameDto,
-} from './dto/update-group.dto';
+import { UpdateGroupDto } from './dto/update-group.dto';
 import { Group } from './group.entity';
 import { GroupService } from './group.service';
 import { GetUser } from '../auth/get-user-decorator';
@@ -121,59 +117,21 @@ export class GroupController {
     description: 'The group name has been successfully updated.',
     type: PublicGroupDto,
   })
-  @Patch('/:id/name')
+  @Patch('/:id')
   updateGroupName(
     @Param('id') id: number,
     @GetUser() user: User,
-    @Body() updateGroupNameDto: UpdateGroupNameDto,
+    @Body() updateGroupDto: UpdateGroupDto,
   ): Promise<PublicGroupDto> {
-    return this.groupService.updateGroupName(id, user, updateGroupNameDto);
+    return this.groupService.updateGroup(id, user, updateGroupDto);
   }
 
   @ApiOperation({
-    summary: 'Update a group description by its id',
+    summary: 'Associate all pizzas in the group.',
   })
   @ApiResponse({
     status: 201,
-    description: 'The group description has been successfully updated.',
-    type: PublicGroupDto,
-  })
-  @Patch('/:id/description')
-  updateGroupDescription(
-    @Param('id') id: number,
-    @GetUser() user: User,
-    @Body() updateGroupDescriptionDto: UpdateGroupDescriptionDto,
-  ): Promise<PublicGroupDto> {
-    return this.groupService.updateGroupDescription(
-      id,
-      user,
-      updateGroupDescriptionDto,
-    );
-  }
-
-  @ApiOperation({
-    summary: 'Update a group date by its id',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'The group dueDate has been successfully updated.',
-    type: PublicGroupDto,
-  })
-  @Patch('/:id/date')
-  updateGroupDate(
-    @Param('id') id: number,
-    @GetUser() user: User,
-    @Body() updateGroupDateDto: UpdateGroupDateDto,
-  ): Promise<PublicGroupDto> {
-    return this.groupService.updateGroupDate(id, user, updateGroupDateDto);
-  }
-
-  @ApiOperation({
-    summary: 'Update a group date by its id',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'The group dueDate has been successfully updated.',
+    description: 'The pizzas have been successfully associated.',
     type: PublicGroupDto,
   })
   @Patch('/:id/associate')
@@ -185,11 +143,11 @@ export class GroupController {
   }
 
   @ApiOperation({
-    summary: 'Update a group date by its id',
+    summary: 'Close a group by its id',
   })
   @ApiResponse({
     status: 201,
-    description: 'The group dueDate has been successfully updated.',
+    description: 'The group has been successfully closed.',
     type: PublicGroupDto,
   })
   @Patch('/:id/close')
